@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model attachments {
+  file_id          Int       @id @default(autoincrement())
+  request_id       Int?
+  uploader_id      Int?
+  storage_location String?   @db.VarChar
+  file_type        String?   @db.VarChar
+  uploaded_at      DateTime? @db.Timestamp(6)
+  requests         requests? @relation(fields: [request_id], references: [request_id], onDelete: NoAction, onUpdate: NoAction)
+  users            users?    @relation(fields: [uploader_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model colleges {
+  college_id    Int           @id @default(autoincrement())
+  name          String        @unique @db.VarChar
+  dean_id       Int?
+  show_absences Boolean       @default(true)
+  created_at    DateTime?     @default(now()) @db.Timestamp(6)
+  users         users?        @relation(fields: [dean_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  departments   departments[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model delegations {
+  delegation_id                            Int       @id @default(autoincrement())
+  request_id                               Int?
+  grantor_user_id                          Int?
+  grantee_user_id                          Int?
+  starts_at                                DateTime? @db.Timestamp(6)
+  ends_at                                  DateTime? @db.Timestamp(6)
+  is_active                                Boolean?  @default(true)
+  delegated_types                          Json?     @db.Json
+  users_delegations_grantee_user_idTousers users?    @relation("delegations_grantee_user_idTousers", fields: [grantee_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_delegations_grantor_user_idTousers users?    @relation("delegations_grantor_user_idTousers", fields: [grantor_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  requests                                 requests? @relation(fields: [request_id], references: [request_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model departments {
+  department_id                          Int      @id @default(autoincrement())
+  dept_name                              String   @db.VarChar
+  college_id                             Int?
+  manager_id                             Int?
+  is_academic                            Boolean? @default(true)
+  show_absences                          Boolean  @default(true)
+  colleges                               colleges? @relation(fields: [college_id], references: [college_id], onDelete: NoAction, onUpdate: NoAction)
+  users_departments_manager_idTousers    users?   @relation("departments_manager_idTousers", fields: [manager_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_users_department_idTodepartments users[]  @relation("users_department_idTodepartments")
+  levels                                 levels[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model form_templates {
+  form_id           Int            @id @default(autoincrement())
+  request_type_id   Int?           @unique
+  name              String         @db.VarChar
+  audience_config   Json?          @db.Json
+  pdf_template      String?        @db.Text
+  signature_url     String?        @db.VarChar
+  stamp_url         String?        @db.VarChar
+  is_active         Boolean?       @default(true)
+  schema            Json?          @db.Json
+  generate_document Boolean?       @default(true)
+  created_at        DateTime?      @default(now()) @db.Timestamp(6)
+  request_types     request_types? @relation(fields: [request_type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction)
+  requests          requests[]
+}
+
+model notifications {
+  notification_id Int       @id @default(autoincrement())
+  user_id         Int?
+  title           String?   @db.VarChar
+  message         String?   @db.VarChar
+  link            String?   @db.VarChar
+  is_read         Boolean   @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model request_actions {
+  action_id      Int             @id @default(autoincrement())
+  request_id     Int?
+  actor_id       Int?
+  step_id        Int?
+  action         String?         @db.VarChar
+  comment        String?
+  created_at     DateTime?       @default(now()) @db.Timestamp(6)
+  users          users?          @relation(fields: [actor_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  requests       requests?       @relation(fields: [request_id], references: [request_id], onDelete: NoAction, onUpdate: NoAction)
+  workflow_steps workflow_steps? @relation(fields: [step_id], references: [step_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([request_id])
+  @@index([actor_id])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model request_types {
+  type_id        Int             @id @default(autoincrement())
+  workflow_id    Int?
+  key            String?         @unique @db.VarChar
+  label          String?         @db.VarChar
+  form_templates form_templates?
+  workflows      workflows?      @relation(fields: [workflow_id], references: [workflow_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// Academic term (semester) model for organizing requests
+model terms {
+  term_id    Int        @id @default(autoincrement())
+  name       String     @db.VarChar
+  start_date DateTime   @db.Timestamp(6)
+  end_date   DateTime   @db.Timestamp(6)
+  created_at DateTime?  @default(now()) @db.Timestamp(6)
+  requests   requests[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model requests {
+  request_id      Int               @id @default(autoincrement())
+  reference_no    String            @unique @db.VarChar
+  requester_id    Int
+  form_id         Int?
+  current_step_id Int?
+  term_id         Int?
+  status          String?           @db.VarChar
+  submission_data Json?             @db.Json
+  submitted_at    DateTime?         @default(now()) @db.Timestamp(6)
+  attachments     attachments[]
+  delegations     delegations[]
+  request_actions request_actions[]
+  workflow_steps  workflow_steps?   @relation(fields: [current_step_id], references: [step_id], onDelete: NoAction, onUpdate: NoAction)
+  form_templates  form_templates?   @relation(fields: [form_id], references: [form_id], onDelete: NoAction, onUpdate: NoAction)
+  users           users             @relation(fields: [requester_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  terms           terms?            @relation(fields: [term_id], references: [term_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([requester_id])
+  @@index([status])
+  @@index([submitted_at])
+  @@index([current_step_id])
+  @@index([form_id])
+  @@index([term_id])
+}
+
+model audit_logs {
+  log_id      Int      @id @default(autoincrement())
+  user_id     Int?
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(50) // e.g., 'USER', 'DEPARTMENT', 'WORKFLOW'
+  entity_id   String?  @db.VarChar(50) // ID of the affected entity
+  details     Json?    @db.Json        // Old/New values or description
+  ip_address  String?  @db.VarChar(50)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  users       users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model roles {
+  role_id        Int              @id @default(autoincrement())
+  role_name      String           @unique @db.VarChar
+  permissions    Json?            @db.Json
+  users          users[]
+  workflow_steps workflow_steps[]
+  workflow_steps_escalations_role workflow_steps[] @relation("EscalationRole")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  user_id                                        Int               @id @default(autoincrement())
+  university_id                                  String            @unique @db.VarChar
+  password_hash                                  String            @db.VarChar
+  full_name                                      String            @db.VarChar
+  email                                          String?           @db.VarChar
+  phone                                          String?           @db.VarChar
+  department_id                                  Int?
+  role_id                                        Int
+  level_id                                       Int?
+  current_term_id                                Int?              // current academic term within the level
+  user_status                                    String?           @default("active") @db.VarChar // active, graduated, archived
+  academic_year                                  String?           @db.VarChar // e.g. "2024-2025"
+  is_active                                      Boolean?          @default(true)
+  created_at                                     DateTime?         @default(now()) @db.Timestamp(6)
+  custom_permissions                             String?           @db.Text
+  attachments                                    attachments[]
+  colleges                                       colleges[]
+  delegations_delegations_grantee_user_idTousers delegations[]     @relation("delegations_grantee_user_idTousers")
+  delegations_delegations_grantor_user_idTousers delegations[]     @relation("delegations_grantor_user_idTousers")
+  departments_departments_manager_idTousers      departments[]     @relation("departments_manager_idTousers")
+  notifications                                  notifications[]
+  request_actions                                request_actions[]
+  requests                                       requests[]
+  departments_users_department_idTodepartments   departments?      @relation("users_department_idTodepartments", fields: [department_id], references: [department_id], onDelete: NoAction, onUpdate: NoAction)
+  roles                                          roles             @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  levels                                         levels?           @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction)
+  current_term                                   level_terms?      @relation("UserCurrentTerm", fields: [current_term_id], references: [term_id], onDelete: NoAction, onUpdate: NoAction)
+  workflow_steps_approvals                       workflow_steps[]  @relation("WorkflowStepApprover")
+  workflow_steps_escalations_user                workflow_steps[]  @relation("EscalationUser")
+  audit_logs                                     audit_logs[]
+  absences                                       absences[]
+}
+
+model workflow_steps {
+  step_id          Int               @id @default(autoincrement())
+  workflow_id      Int?
+  order            Int
+  name             String?           @db.VarChar
+  approver_role_id Int?
+  approver_user_id Int?
+  sla_hours        Int?
+  is_final           Boolean?          @default(false)
+  escalation_role_id Int?
+  escalation_user_id Int?
+  escalate_to_next   Boolean?          @default(false)
+  request_actions    request_actions[]
+  requests           requests[]
+  roles              roles?            @relation(fields: [approver_role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  escalation_role    roles?            @relation("EscalationRole", fields: [escalation_role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  escalation_user    users?            @relation("EscalationUser", fields: [escalation_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users              users?            @relation("WorkflowStepApprover", fields: [approver_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  workflows          workflows?        @relation(fields: [workflow_id], references: [workflow_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model workflows {
+  workflow_id    Int              @id @default(autoincrement())
+  name           String?          @db.VarChar
+  is_active      Boolean?         @default(true)
+  request_types  request_types[]
+  workflow_steps workflow_steps[]
+}
+
+/// Academic levels (e.g., Level 1, Level 2, ...) — each level belongs to a department
+model levels {
+  level_id      Int          @id @default(autoincrement())
+  name          String       @db.VarChar
+  order         Int          @default(0) // for sorting within the department
+  department_id Int?         // which department this level belongs to
+  show_absences Boolean      @default(true)
+  created_at    DateTime?    @default(now()) @db.Timestamp(6)
+  level_terms   level_terms[]
+  users         users[]
+  departments   departments? @relation(fields: [department_id], references: [department_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([department_id])
+}
+
+/// Academic terms per level
+model level_terms {
+  term_id       Int        @id @default(autoincrement())
+  level_id      Int
+  name          String     @db.VarChar
+  order         Int        @default(0)
+  created_at    DateTime?  @default(now()) @db.Timestamp(6)
+  levels        levels     @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction)
+  subjects      subjects[]
+  users_current_term users[] @relation("UserCurrentTerm")
+
+  @@index([level_id])
+}
+
+/// Subjects/courses belonging to each term
+model subjects {
+  subject_id   Int        @id @default(autoincrement())
+  term_id      Int
+  name         String     @db.VarChar
+  code         String?    @db.VarChar
+  created_at   DateTime?  @default(now()) @db.Timestamp(6)
+  level_terms  level_terms @relation(fields: [term_id], references: [term_id], onDelete: Cascade, onUpdate: NoAction)
+  absences     absences[]
+
+  @@index([term_id])
+}
+
+/// Absence counter — one record per (student, subject)
+model absences {
+  absence_id      Int              @id @default(autoincrement())
+  student_id      Int
+  subject_id      Int
+  total_absences  Int              @default(0) // computed from absence_records count
+  excused_count   Int              @default(0) // computed from excused absence_records count
+  created_at      DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?        @updatedAt
+  users           users            @relation(fields: [student_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  subjects        subjects         @relation(fields: [subject_id], references: [subject_id], onDelete: Cascade, onUpdate: NoAction)
+  absence_records absence_records[]
+
+  @@unique([student_id, subject_id])
+  @@index([student_id])
+  @@index([subject_id])
+}
+
+/// Individual absence entry with date and excuse status
+model absence_records {
+  record_id    Int       @id @default(autoincrement())
+  absence_id   Int
+  absence_date DateTime  @db.Date
+  is_excused   Boolean   @default(false)
+  request_id   Int?      // linked request if excuse was submitted through system
+  notes        String?   @db.Text
+  recorded_by  Int?      // employee who recorded it
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  absences     absences  @relation(fields: [absence_id], references: [absence_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([absence_id])
+  @@index([absence_date])
+}

@@ -1,0 +1,179 @@
+// ==========================================
+// 1. Organization Structure (New Hierarchy)
+// ==========================================
+Table colleges {
+  college_id INT [pk, increment]
+  name VARCHAR [unique, not null, note: "College of Computer Science"]
+  dean_id INT [null, note: "Link to the Dean user"]
+  created_at TIMESTAMP [default: `now()`]
+}
+
+Table departments {
+  department_id INT [pk, increment]
+  dept_name VARCHAR [not null]
+  
+  // ✅ Linked to College
+  college_id INT [not null] 
+  
+  manager_id INT [note: "Head of Department"]
+}
+
+// ==========================================
+// 2. User Management
+// ==========================================
+Table users {
+  user_id INT [pk, increment]
+  university_id VARCHAR [unique, not null, note: "Student ID or Employee Username"]
+  password_hash VARCHAR [not null]
+  full_name VARCHAR [not null]
+  phone VARCHAR
+  email VARCHAR [note: "Added for notifications"]
+  
+  // User belongs to a Dept (and implicitly to a College)
+  // Nullable for top-level admins or unassigned users
+  department_id INT 
+  
+  role_id INT [not null]
+  is_active BOOLEAN [default: true]
+  created_at TIMESTAMP [default: `now()`]
+}
+
+Table roles {
+  role_id INT [pk, increment]
+  role_name VARCHAR [unique, not null]
+  permissions JSON [note: "Array of permission strings, e.g. ['create_form', 'approve_request']"]
+}
+
+// ==========================================
+// 3. Forms & Configuration
+// ==========================================
+Table form_templates {
+  form_id INT [pk, increment]
+  request_type_id INT 
+  name VARCHAR [not null]
+  
+  // ✅ Refined: Supports granular targeting
+  audience_config JSON [note: "{ 'roles': ['student'], 'colleges': [1], 'departments': [] }"]
+  
+  is_active BOOLEAN [default: true]
+  schema JSON [note: "Form builder field definitions"]
+  created_at TIMESTAMP [default: `now()`]
+}
+
+Table request_types {
+  type_id INT [pk, increment]
+  key VARCHAR [unique, note: "academic, administrative, etc."]
+  label VARCHAR 
+}
+
+// ==========================================
+// 4. Workflows
+// ==========================================
+Table workflows {
+  workflow_id INT [pk, increment]
+  request_type_id INT
+  name VARCHAR
+  is_active BOOLEAN [default: true]
+}
+
+Table workflow_steps {
+  step_id INT [pk, increment]
+  workflow_id INT
+  order INT [not null]
+  name VARCHAR
+  approver_role_id INT
+  sla_hours INT
+  is_final BOOLEAN [default: false]
+}
+
+// ==========================================
+// 5. Requests (Transactions)
+// ==========================================
+Table requests {
+  request_id INT [pk, increment]
+  reference_no VARCHAR [unique, not null]
+  requester_id INT [not null]
+  form_id INT
+  
+  // Snapshot of the workflow step at time of request
+  current_step_id INT
+  
+  status VARCHAR [note: "draft, pending, under_review, returned, approved, rejected, withdrawn"]
+  submission_data JSON [note: "User answers to form schema"]
+  submitted_at TIMESTAMP [default: `now()`]
+}
+
+Table request_actions {
+  action_id INT [pk, increment]
+  request_id INT
+  actor_id INT
+  step_id INT
+  action VARCHAR
+  comment TEXT
+  created_at TIMESTAMP [default: `now()`]
+}
+
+Table attachments {
+  file_id INT [pk, increment]
+  request_id INT
+  uploader_id INT [null]
+  storage_location VARCHAR [note: "Path/Key where the file is stored"]
+  file_type VARCHAR [note: "user_upload, system_certificate"] 
+  uploaded_at TIMESTAMP
+}
+
+// ==========================================
+// 6. Delegations & Notifications
+// ==========================================
+Table delegations {
+  delegation_id INT [pk, increment]
+  request_id INT [null, note: "If null, blanket delegation for time period"] 
+  grantor_user_id INT
+  grantee_user_id INT
+  starts_at TIMESTAMP
+  ends_at TIMESTAMP
+  is_active BOOLEAN [default: true]
+}
+
+Table notifications {
+  notification_id INT [pk, increment]
+  user_id INT
+  title VARCHAR
+  message VARCHAR
+  link VARCHAR
+  created_at TIMESTAMP [default: `now()`]
+}
+
+// ==========================================
+// Relationships
+// ==========================================
+
+Ref: "departments"."college_id" > "colleges"."college_id"
+Ref: "colleges"."dean_id" - "users"."user_id"
+
+Ref: "users"."role_id" > "roles"."role_id"
+Ref: "users"."department_id" > "departments"."department_id"
+Ref: "departments"."manager_id" - "users"."user_id"
+
+Ref: "form_templates"."request_type_id" > "request_types"."type_id"
+
+Ref: "workflows"."request_type_id" - "request_types"."type_id"
+Ref: "workflow_steps"."workflow_id" > "workflows"."workflow_id"
+Ref: "workflow_steps"."approver_role_id" > "roles"."role_id"
+
+Ref: "requests"."requester_id" > "users"."user_id"
+Ref: "requests"."form_id" > "form_templates"."form_id"
+Ref: "requests"."current_step_id" > "workflow_steps"."step_id"
+
+Ref: "request_actions"."request_id" > "requests"."request_id"
+Ref: "request_actions"."actor_id" > "users"."user_id"
+Ref: "request_actions"."step_id" > "workflow_steps"."step_id"
+
+Ref: "attachments"."request_id" > "requests"."request_id"
+Ref: "attachments"."uploader_id" > "users"."user_id"
+
+Ref: "delegations"."request_id" > "requests"."request_id"
+Ref: "delegations"."grantor_user_id" > "users"."user_id"
+Ref: "delegations"."grantee_user_id" > "users"."user_id"
+
+Ref: "notifications"."user_id" > "users"."user_id"

@@ -1,0 +1,234 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ===== University Brand Colors ===== */
+  --brand-teal:        #00A89D;
+  --brand-teal-dark:   #008A80;
+  --brand-teal-light:  #E6F7F6;
+  --brand-teal-mid:    #B3E8E5;
+  --brand-orange:      #F7941D;
+  --brand-orange-dark: #D97E10;
+  --brand-orange-light:#FEF3E6;
+
+  /* ===== Semantic Design Tokens ===== */
+  --background:             #FFFFFF;
+  --foreground:             #1C2E2D;
+  --card:                   #FFFFFF;
+  --card-foreground:        #1C2E2D;
+  --popover:                #FFFFFF;
+  --popover-foreground:     #1C2E2D;
+
+  --primary:                #00A89D;
+  --primary-foreground:     #FFFFFF;
+
+  --secondary:              #E6F7F6;
+  --secondary-foreground:   #00A89D;
+
+  --muted:                  #F4F8F8;
+  --muted-foreground:       #6B8F8E;
+
+  --accent:                 #FEF3E6;
+  --accent-foreground:      #D97E10;
+
+  --destructive:            #DC2626;
+  --destructive-foreground: #FFFFFF;
+
+  --border:                 #E2EDEC;
+  --input:                  #E2EDEC;
+  --ring:                   #00A89D;
+
+  --radius:                 0.75rem;
+
+  /* ===== Sidebar ===== */
+  --sidebar:                        #FFFFFF;
+  --sidebar-foreground:             #2D4847;
+  --sidebar-primary:                #00A89D;
+  --sidebar-primary-foreground:     #FFFFFF;
+  --sidebar-accent:                 #E6F7F6;
+  --sidebar-accent-foreground:      #008A80;
+  --sidebar-border:                 #E2EDEC;
+  --sidebar-ring:                   #00A89D;
+
+  /* ===== Charts ===== */
+  --chart-1: #00A89D;
+  --chart-2: #F7941D;
+  --chart-3: #33BDB5;
+  --chart-4: #F9B35A;
+  --chart-5: #66CCC7;
+}
+
+/* Dark mode — kept minimal, using same brand teal */
+.dark {
+  --background:             #0F1E1E;
+  --foreground:             #E8F5F4;
+  --card:                   #162828;
+  --card-foreground:        #E8F5F4;
+  --popover:                #162828;
+  --popover-foreground:     #E8F5F4;
+  --primary:                #00A89D;
+  --primary-foreground:     #FFFFFF;
+  --secondary:              #1A3533;
+  --secondary-foreground:   #66CCC7;
+  --muted:                  #1A3533;
+  --muted-foreground:       #7AABA9;
+  --accent:                 #2D1E10;
+  --accent-foreground:      #F7941D;
+  --destructive:            #991B1B;
+  --destructive-foreground: #FCA5A5;
+  --border:                 #1E3C3A;
+  --input:                  #1E3C3A;
+  --ring:                   #00A89D;
+  --sidebar:                #0F1E1E;
+  --sidebar-foreground:     #E8F5F4;
+  --sidebar-primary:        #00A89D;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:         #1A3533;
+  --sidebar-accent-foreground: #66CCC7;
+  --sidebar-border:         #1E3C3A;
+  --sidebar-ring:           #00A89D;
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background:              var(--background);
+  --color-foreground:              var(--foreground);
+  --color-card:                    var(--card);
+  --color-card-foreground:         var(--card-foreground);
+  --color-popover:                 var(--popover);
+  --color-popover-foreground:      var(--popover-foreground);
+  --color-primary:                 var(--primary);
+  --color-primary-foreground:      var(--primary-foreground);
+  --color-secondary:               var(--secondary);
+  --color-secondary-foreground:    var(--secondary-foreground);
+  --color-muted:                   var(--muted);
+  --color-muted-foreground:        var(--muted-foreground);
+  --color-accent:                  var(--accent);
+  --color-accent-foreground:       var(--accent-foreground);
+  --color-destructive:             var(--destructive);
+  --color-destructive-foreground:  var(--destructive-foreground);
+  --color-border:                  var(--border);
+  --color-input:                   var(--input);
+  --color-ring:                    var(--ring);
+  --color-chart-1:                 var(--chart-1);
+  --color-chart-2:                 var(--chart-2);
+  --color-chart-3:                 var(--chart-3);
+  --color-chart-4:                 var(--chart-4);
+  --color-chart-5:                 var(--chart-5);
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --color-sidebar:                         var(--sidebar);
+  --color-sidebar-foreground:              var(--sidebar-foreground);
+  --color-sidebar-primary:                 var(--sidebar-primary);
+  --color-sidebar-primary-foreground:      var(--sidebar-primary-foreground);
+  --color-sidebar-accent:                  var(--sidebar-accent);
+  --color-sidebar-accent-foreground:       var(--sidebar-accent-foreground);
+  --color-sidebar-border:                  var(--sidebar-border);
+  --color-sidebar-ring:                    var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    pointer-events: auto !important;
+  }
+}
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: #F4F8F8; }
+::-webkit-scrollbar-thumb  { background: #B3E8E5; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #00A89D; }
+
+/* ===== .select-field ===== */
+/* Applied to all native <select> elements for brand-consistent styling */
+.select-field {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.75rem 0 2.25rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #1C2E2D;
+  background-color: #FFFFFF;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B8F8E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 10px center;
+  border: 1.5px solid #D1D9D8;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.select-field:hover {
+  border-color: #00A89D;
+}
+
+.select-field:focus {
+  border-color: #00A89D;
+  box-shadow: 0 0 0 3px rgba(0, 168, 157, 0.15);
+}
+
+.select-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #F4F8F8;
+}
+
+.select-field option:checked,
+.select-field option:hover {
+  background-color: #FEF3E6;
+  color: #D97E10;
+}
+
+/* Also style native selects that DON'T have the class (fallback) */
+select:not([data-radix-select-trigger]) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B8F8E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 10px center;
+  padding-left: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #D1D9D8;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+select:not([data-radix-select-trigger]):focus {
+  outline: none;
+  border-color: #00A89D;
+  box-shadow: 0 0 0 3px rgba(0, 168, 157, 0.15);
+}
+
+select:not([data-radix-select-trigger]):hover {
+  border-color: #00A89D;
+}
+
+select option:checked {
+  background-color: #FEF3E6;
+  color: #D97E10;
+}
+
+/* ===== PNG Signature/Stamp Background Removal (Blend Mode) ===== */
+/* Ensures PNG signatures and stamps with white/grey/checkerboard backgrounds blend seamlessly on white/light paper */
+.rich-text-editor img:not([src*="logo"]), 
+.pdf-preview-content img:not([src*="logo"]), 
+.pdf-editor-content img:not([src*="logo"]), 
+.pdf-document-container img:not([src*="logo"]),
+[class*="pdf-"] img:not([src*="logo"]),
+[class*="document-"] img:not([src*="logo"]) {
+  mix-blend-mode: multiply !important;
+  filter: contrast(250%) brightness(125%) grayscale(100%) !important;
+}
+

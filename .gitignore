@@ -1,0 +1,36 @@
+node_modules
+# Keep environment variables out of version control
+.env
+.env*.local
+.env.local
+
+/lib/generated/prisma
+/generated
+/lib/prisma
+
+.vercel
+.firebase
+
+.next
+
+# Firebase service account key (sensitive - never commit!)
+serviceAccountKey.json
+
+# User uploaded files
+public/uploads/
+
+# Build info
+tsconfig.tsbuildinfo
+
+# Backup files
+*.backup.tsx
+*.backup.ts
+*.bak
+
+# WhatsApp bot session & cache (large browser data)
+whatsapp-bot/.wwebjs_auth/
+whatsapp-bot/.wwebjs_cache/
+
+# Temporary scratch scripts
+scratch/
+
