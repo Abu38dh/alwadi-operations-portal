@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs"
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
-    secret: process.env.AUTH_SECRET || "masar-secret-key-32-characters-minimum-enterprise-app",
+    trustHost: true,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "masar-secret-key-32-characters-minimum-enterprise-app",
     providers: [
         Credentials({
             async authorize(credentials) {

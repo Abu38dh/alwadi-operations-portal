@@ -1,7 +1,8 @@
 import type { NextAuthConfig } from "next-auth"
 
 export const authConfig = {
-    secret: process.env.AUTH_SECRET || "masar-secret-key-32-characters-minimum-enterprise-app",
+    trustHost: true,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "masar-secret-key-32-characters-minimum-enterprise-app",
     pages: {
         signIn: '/', // Using the home page as login page
     },
