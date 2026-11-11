@@ -29,7 +29,7 @@ import { ErrorMessage } from "@/components/ui/error-message"
 import { EmptyState } from "@/components/ui/empty-state"
 import { getEmployeeInbox, getEmployeeStats, processRequest, getEmployeeRequests } from "@/app/actions/employee"
 import { getAvailableFormTemplates } from "@/app/actions/forms"
-import { CheckCircle, CheckCircle2, XCircle, Clock, FileText, RotateCcw, Redo2, Upload, ExternalLink, Search, Sparkles, ChevronRight, ArrowRight } from "lucide-react"
+import { CheckCircle, CheckCircle2, XCircle, Clock, FileText, RotateCcw, Redo2, Upload, ExternalLink, Search, Sparkles, ChevronRight, ArrowRight, X } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import AdminFormsPage from "@/components/admin/admin-forms-page"
 import WorkflowsEditor from "@/components/admin/workflows-editor"
@@ -139,9 +139,18 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
   const [availableForms, setAvailableForms] = useState<any[]>([])
   const [terms, setTerms] = useState<any[]>([])
   const [stats, setStats] = useState<RequestStatsType>({ returned: 0, approved: 0, rejected: 0, pending: 0 })
+  const [requestStatusFilter, setRequestStatusFilter] = useState<string>("all")
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Derived stats for my own submitted requests
+  const myRequestsStats = {
+    pending: myRequests.filter(r => r.status === 'pending' || r.status === 'processing').length,
+    approved: myRequests.filter(r => r.status === 'approved' || (r.status as string) === 'approved_with_changes').length,
+    returned: myRequests.filter(r => r.status === 'returned' || (r.status as string) === 'rejected_with_changes').length,
+    rejected: myRequests.filter(r => r.status === 'rejected').length,
+  }
 
   // Action states
   const [isProcessing, setIsProcessing] = useState(false)
@@ -486,12 +495,7 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
     } else {
       fetchHistoryData()
       setCurrentView("history")
-      const statusMap: Record<string, string> = {
-        approved: "موافق عليه",
-        rejected: "مرفوض",
-        returned: "معاد للتعديل"
-      }
-      setHistorySearchQuery(statusMap[type] || type)
+      setHistorySearchQuery(type)
     }
   };
 
@@ -561,8 +565,32 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
         <main className="flex-1">
           {/* My Requests View */}
           {currentView === "requests" && (
-            <div className="p-2.5 sm:p-6">
-              <h2 className={`text-lg sm:text-2xl font-bold mb-3 ${selectedRequest ? 'hidden md:block' : 'block'}`}>طلباتي</h2>
+            <div className="p-2.5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <h2 className={`text-lg sm:text-2xl font-bold ${selectedRequest ? 'hidden md:block' : 'block'}`}>طلباتي</h2>
+                {requestStatusFilter !== "all" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRequestStatusFilter("all")}
+                    className="text-xs gap-1.5 h-8 text-primary border-primary/30 hover:bg-primary/5"
+                  >
+                    <span>عرض جميع الطلبات (إلغاء التصفية)</span>
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Stats Cards for My Requests */}
+              <div className={`${selectedRequest ? 'hidden md:block' : 'block'}`}>
+                <RequestStats
+                  stats={myRequestsStats}
+                  onStatClick={(type) => {
+                    setRequestStatusFilter(prev => prev === type ? "all" : type)
+                  }}
+                />
+              </div>
+
               {myRequests.length === 0 ? (
                 <EmptyState
                   icon="📝"
@@ -577,7 +605,17 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                 <div className="flex flex-col md:flex-row gap-6 min-h-[500px]">
                   <div className={`w-full md:w-1/3 border border-border bg-card rounded-xl ${selectedRequest ? 'hidden md:block' : 'block'}`}>
                     <RequestList
-                      requests={myRequests.map(r => ({ ...r, title: r.type }))}
+                      requests={myRequests
+                        .filter(r => {
+                          if (requestStatusFilter === "all") return true
+                          if (requestStatusFilter === "pending") return r.status === "pending" || r.status === "processing"
+                          if (requestStatusFilter === "approved") return r.status === "approved" || (r.status as string) === "approved_with_changes"
+                          if (requestStatusFilter === "returned") return r.status === "returned" || (r.status as string) === "rejected_with_changes"
+                          if (requestStatusFilter === "rejected") return r.status === "rejected"
+                          return true
+                        })
+                        .map(r => ({ ...r, title: r.type }))
+                      }
                       selectedId={selectedRequest?.id}
                       onSelect={(id) => {
                         const req = myRequests.find(r => r.id === id)
@@ -1036,12 +1074,27 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
           {currentView === "history" && (() => {
             const filteredHistory = historyRequests.filter((item) => {
               if (!historySearchQuery) return true
-              const query = historySearchQuery
-              const knownStatuses = ['pending', 'approved', 'rejected', 'returned', 'processing']
-              if (knownStatuses.includes(query)) {
-                return item.status === query
-              }
+              const query = historySearchQuery.trim()
               const q = query.toLocaleLowerCase('ar')
+
+              const isApprovedQuery = q === 'approved' || q === 'موافق عليه' || q === 'موافقة' || q === 'معتمد'
+              const isRejectedQuery = q === 'rejected' || q === 'مرفوض' || q === 'رفض'
+              const isReturnedQuery = q === 'returned' || q === 'معاد للتعديل' || q === 'تعديل' || q === 'إرجاع'
+              const isPendingQuery = q === 'pending' || q === 'قيد الانتظار' || q === 'انتظار'
+
+              if (isApprovedQuery) {
+                return item.action === 'approve' || item.status === 'approved'
+              }
+              if (isRejectedQuery) {
+                return item.action === 'reject' || item.status === 'rejected'
+              }
+              if (isReturnedQuery) {
+                return item.action === 'return' || item.status === 'returned'
+              }
+              if (isPendingQuery) {
+                return item.status === 'pending'
+              }
+
               const statusMap: Record<string, string> = {
                 pending: "قيد الانتظار",
                 processing: "قيد المراجعة",
@@ -1050,20 +1103,38 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                 returned: "معاد للتعديل",
               }
               const statusLabel = (statusMap[item.status] || "").toLocaleLowerCase('ar')
+              const actionLabel = (item.actionLabel || item.action || "").toLocaleLowerCase('ar')
+              const actorName = (item.actorName || "").toLocaleLowerCase('ar')
+
               return (
                 (item.requestId?.toString() || "").includes(q) ||
                 (item.requestType || "").toLocaleLowerCase('ar').includes(q) ||
                 (item.applicant || "").toLocaleLowerCase('ar').includes(q) ||
                 (item.applicantId || "").toLocaleLowerCase('ar').includes(q) ||
                 (item.comment || "").toLocaleLowerCase('ar').includes(q) ||
-                statusLabel.includes(q)
+                statusLabel.includes(q) ||
+                actionLabel.includes(q) ||
+                actorName.includes(q)
               )
             })
 
             return (
               <div className="p-2.5 sm:p-4 md:p-6 space-y-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                  <h2 className="text-base sm:text-xl font-bold">سجل الإجراءات ({filteredHistory.length})</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-xl font-bold">سجل الإجراءات ({filteredHistory.length})</h2>
+                    {historySearchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setHistorySearchQuery("")}
+                        className="text-xs text-primary h-7 gap-1"
+                      >
+                        <span>عرض الكل</span>
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
                   <div className="relative w-full sm:w-64">
                     <Input
                       placeholder="بحث في السجل..."
@@ -1095,11 +1166,24 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-bold text-xs text-foreground truncate">{item.requestType}</span>
-                            {getStatusBadge(item.status)}
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              item.action === 'approve' ? 'bg-emerald-100 text-emerald-800' :
+                              item.action === 'reject' ? 'bg-rose-100 text-rose-800' :
+                              item.action === 'return' ? 'bg-orange-100 text-orange-800' :
+                              'bg-slate-100 text-slate-800'
+                            }`}>
+                              {item.actionLabel || item.action}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-[11px] text-slate-600">
                             <div className="flex items-center gap-1 truncate">
                               <span className="font-semibold text-foreground truncate">{item.applicant}</span>
+                              {item.actorName && (
+                                <>
+                                  <span className="text-muted-foreground">•</span>
+                                  <span className="text-primary font-medium">{item.actorName}</span>
+                                </>
+                              )}
                               <span className="text-muted-foreground">•</span>
                               <span className="font-mono text-muted-foreground text-[10px]">#{item.requestId}</span>
                             </div>
@@ -1124,10 +1208,11 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                             <th className="p-3 font-medium">رقم الطلب</th>
                             <th className="p-3 font-medium">نوع الطلب</th>
                             <th className="p-3 font-medium">مقدم الطلب</th>
-                            <th className="p-3 font-medium">الرقم الوظيفي</th>
+                            <th className="p-3 font-medium">الإجراء المتخذ</th>
+                            <th className="p-3 font-medium">بواسطة</th>
                             <th className="p-3 font-medium">التاريخ</th>
-                            <th className="p-3 font-medium">ملاحظاتك</th>
-                            <th className="p-3 font-medium">الحالة الحالية</th>
+                            <th className="p-3 font-medium">الملاحظات</th>
+                            <th className="p-3 font-medium">حالة الطلب</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1137,10 +1222,20 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                               className="border-b transition-colors hover:bg-muted/50 cursor-pointer"
                               onClick={() => handleViewHistory(item.requestId)}
                             >
-                              <td className="p-3 font-mono">{item.requestId}</td>
-                              <td className="p-3">{item.requestType}</td>
+                              <td className="p-3 font-mono">#{item.requestId}</td>
+                              <td className="p-3 font-medium">{item.requestType}</td>
                               <td className="p-3">{item.applicant}</td>
-                              <td className="p-3 font-mono">{item.applicantId}</td>
+                              <td className="p-3">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                  item.action === 'approve' ? 'bg-emerald-100 text-emerald-800' :
+                                  item.action === 'reject' ? 'bg-rose-100 text-rose-800' :
+                                  item.action === 'return' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-slate-100 text-slate-800'
+                                }`}>
+                                  {item.actionLabel || item.action}
+                                </span>
+                              </td>
+                              <td className="p-3 text-slate-600 font-medium">{item.actorName || "المسؤول"}</td>
                               <td className="p-3">
                                 {new Date(item.timestamp).toLocaleDateString('ar-SA')}
                                 <span className="text-xs text-muted-foreground block text-right">
@@ -1148,7 +1243,11 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                                 </span>
                               </td>
                               <td className="p-3 max-w-[200px] truncate" title={item.comment}>
-                                <span className="text-primary hover:underline font-medium">عرض التفاصيل</span>
+                                {item.comment ? (
+                                  <span className="text-slate-600 text-xs">{item.comment}</span>
+                                ) : (
+                                  <span className="text-muted-foreground text-xs italic">لا توجد ملاحظات</span>
+                                )}
                               </td>
                               <td className="p-3">
                                 {getStatusBadge(item.status)}

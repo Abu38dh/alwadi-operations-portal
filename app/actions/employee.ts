@@ -217,8 +217,16 @@ export async function getEmployeeHistory(employeeId: string) {
         if (!user) throw new Error("Employee not found")
 
         const actions = await db.request_actions.findMany({
-            where: { actor_id: user.user_id },
+            where: {
+                OR: [
+                    { actor_id: user.user_id },
+                    { requests: { requester_id: user.user_id } }
+                ]
+            },
             include: {
+                users: {
+                    select: { user_id: true, full_name: true, university_id: true }
+                },
                 requests: {
                     include: {
                         users: true,
@@ -229,31 +237,29 @@ export async function getEmployeeHistory(employeeId: string) {
             orderBy: { created_at: 'desc' }
         })
 
-        // Deduplicate requests
-        const uniqueHistory = actions.reduce((acc, current) => {
-            const x = acc.find(item => item.request_id === current.request_id);
-            if (!x) {
-                return acc.concat([current]);
-            } else {
-                return acc;
-            }
-        }, [] as typeof actions);
-
         return {
             success: true,
-            history: uniqueHistory.map((a: any) => ({
-                id: a.action_id.toString(),
-                requestId: a.request_id?.toString(),
-                requestType: a.requests?.form_templates?.name || "General",
-                applicant: a.requests?.users?.full_name,
-                applicantId: a.requests?.users?.university_id,
-                applicantPhone: a.requests?.users?.phone,
-                action: a.action,
-                date: a.created_at?.toISOString().split('T')[0],
-                timestamp: a.created_at,
-                comment: a.comment,
-                status: a.requests?.status
-            }))
+            history: actions.map((a: any) => {
+                const isMyAction = a.actor_id === user.user_id
+                const actorName = a.users?.full_name || (isMyAction ? "أنت" : "المسؤول")
+                const actionLabel = a.action === 'approve' ? 'موافق عليه' : a.action === 'reject' ? 'مرفوض' : a.action === 'return' ? 'معاد للتعديل' : a.action
+
+                return {
+                    id: a.action_id.toString(),
+                    requestId: a.request_id?.toString(),
+                    requestType: a.requests?.form_templates?.name || "General",
+                    applicant: a.requests?.users?.full_name || "مقدم الطلب",
+                    applicantId: a.requests?.users?.university_id || "",
+                    applicantPhone: a.requests?.users?.phone || "",
+                    actorName: actorName,
+                    action: a.action,
+                    actionLabel: actionLabel,
+                    date: a.created_at?.toISOString().split('T')[0],
+                    timestamp: a.created_at,
+                    comment: a.comment,
+                    status: a.requests?.status || "pending"
+                }
+            })
         }
     } catch (error) {
         console.error("Employee History Error:", error)
@@ -889,20 +895,29 @@ export async function getEmployeeStats(userId: string) {
         const [returnedCount, approvedCount, rejectedCount, activeDelegations] = await Promise.all([
             db.requests.count({
                 where: {
-                    status: 'returned',
-                    request_actions: { some: { actor_id: user.user_id } }
+                    OR: [
+                        { status: 'returned', requester_id: user.user_id },
+                        { request_actions: { some: { actor_id: user.user_id, action: 'return' } } },
+                        { status: 'returned', request_actions: { some: { actor_id: user.user_id } } }
+                    ]
                 }
             }),
             db.requests.count({
                 where: {
-                    status: 'approved',
-                    request_actions: { some: { actor_id: user.user_id } }
+                    OR: [
+                        { status: 'approved', requester_id: user.user_id },
+                        { request_actions: { some: { actor_id: user.user_id, action: 'approve' } } },
+                        { status: 'approved', request_actions: { some: { actor_id: user.user_id } } }
+                    ]
                 }
             }),
             db.requests.count({
                 where: {
-                    status: 'rejected',
-                    request_actions: { some: { actor_id: user.user_id } }
+                    OR: [
+                        { status: 'rejected', requester_id: user.user_id },
+                        { request_actions: { some: { actor_id: user.user_id, action: 'reject' } } },
+                        { status: 'rejected', request_actions: { some: { actor_id: user.user_id } } }
+                    ]
                 }
             }),
             db.delegations.findMany({
@@ -952,7 +967,10 @@ export async function getEmployeeStats(userId: string) {
         const pendingCount = await db.requests.count({
             where: {
                 status: "pending",
-                OR: authOrConditions
+                OR: [
+                    ...authOrConditions,
+                    { requester_id: user.user_id }
+                ]
             }
         })
 
