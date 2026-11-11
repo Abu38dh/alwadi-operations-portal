@@ -372,24 +372,57 @@ export async function getRequestActions(requestId: string) {
         const id = parseInt(requestId)
         if (isNaN(id)) return []
 
-        const actions = await db.request_actions.findMany({
-            where: { request_id: id },
-            include: {
-                users: {
-                    include: { roles: true }
-                }
-            },
-            orderBy: { created_at: 'desc' }
-        })
+        const [actions, attachments] = await Promise.all([
+            db.request_actions.findMany({
+                where: { request_id: id },
+                include: {
+                    users: {
+                        include: { roles: true }
+                    }
+                },
+                orderBy: { created_at: 'desc' }
+            }),
+            db.attachments.findMany({
+                where: { request_id: id },
+                include: {
+                    users: { select: { user_id: true, full_name: true } }
+                },
+                orderBy: { uploaded_at: 'desc' }
+            })
+        ])
 
-        return actions.map(action => ({
-            id: action.action_id.toString(),
-            action: action.action || "",
-            timestamp: action.created_at?.toISOString() || new Date().toISOString(),
-            actorName: action.users?.full_name || "Unknown",
-            actorRole: action.users?.roles?.role_name || "Unknown",
-            comment: action.comment || undefined
-        }))
+        return actions.map(action => {
+            const match = action.comment?.match(/\[تم إرفاق ملف:\s*([^\]]+)\]/)
+            const attachedFileName = match ? match[1].trim() : null
+
+            // Find matching attachment from DB
+            const relatedAttachment = attachments.find(att => {
+                if (attachedFileName && att.storage_location) {
+                    if (att.storage_location.includes(attachedFileName)) return true
+                    const ext = attachedFileName.split('.').pop()
+                    if (ext && att.file_type === ext) return true
+                }
+                return att.uploader_id === action.actor_id
+            })
+
+            const finalAttachment = relatedAttachment ? {
+                id: relatedAttachment.file_id,
+                name: attachedFileName || `مرفق-${relatedAttachment.file_id}.${relatedAttachment.file_type || 'file'}`,
+                url: relatedAttachment.storage_location,
+                type: relatedAttachment.file_type || 'file',
+                uploaderName: relatedAttachment.users?.full_name || action.users?.full_name
+            } : null
+
+            return {
+                id: action.action_id.toString(),
+                action: action.action || "",
+                timestamp: action.created_at?.toISOString() || new Date().toISOString(),
+                actorName: action.users?.full_name || "Unknown",
+                actorRole: action.users?.roles?.role_name || "Unknown",
+                comment: action.comment || undefined,
+                attachment: finalAttachment
+            }
+        })
     } catch (error) {
         console.error("Get Request Actions Error:", error)
         return []

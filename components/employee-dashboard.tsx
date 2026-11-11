@@ -29,7 +29,7 @@ import { ErrorMessage } from "@/components/ui/error-message"
 import { EmptyState } from "@/components/ui/empty-state"
 import { getEmployeeInbox, getEmployeeStats, processRequest, getEmployeeRequests } from "@/app/actions/employee"
 import { getAvailableFormTemplates } from "@/app/actions/forms"
-import { CheckCircle, CheckCircle2, XCircle, Clock, FileText, RotateCcw, Redo2, Upload, ExternalLink, Search, Sparkles, ChevronRight, ArrowRight, X } from "lucide-react"
+import { CheckCircle, CheckCircle2, XCircle, Clock, FileText, RotateCcw, Redo2, Upload, ExternalLink, Search, Sparkles, ChevronRight, ArrowRight, X, Eye, Download } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import AdminFormsPage from "@/components/admin/admin-forms-page"
 import WorkflowsEditor from "@/components/admin/workflows-editor"
@@ -973,11 +973,65 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                                           <p className="text-sm text-foreground/80">
                                             <span className="font-medium text-primary">{action.actorName}</span> ({translateRole(action.actorRole)})
                                           </p>
-                                          {action.comment && (
-                                            <div className="mt-1.5 p-2.5 bg-slate-50 rounded-lg text-xs text-muted-foreground border border-slate-100 whitespace-pre-wrap leading-relaxed">
-                                              {action.comment}
-                                            </div>
-                                          )}
+                                          {(() => {
+                                            const cleanedComment = action.comment ? action.comment.replace(/\n*\[تم إرفاق ملف:[^\]]*\]/g, '').trim() : '';
+                                            const attachment = action.attachment;
+                                            const isPdf = attachment?.type === 'pdf' || attachment?.url?.startsWith('data:application/pdf') || attachment?.name?.endsWith('.pdf');
+                                            const isImage = attachment?.url?.startsWith('data:image') || /\.(png|jpe?g|gif|webp)$/i.test(attachment?.name || '');
+
+                                            return (
+                                              <>
+                                                {cleanedComment && (
+                                                  <div className="mt-1.5 p-2.5 bg-slate-50 rounded-lg text-xs text-muted-foreground border border-slate-100 whitespace-pre-wrap leading-relaxed">
+                                                    {cleanedComment}
+                                                  </div>
+                                                )}
+                                                {attachment && attachment.url && (
+                                                  <div className="mt-2 flex items-center justify-between p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl gap-2">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                      <span className="w-8 h-8 rounded-lg bg-white border border-emerald-200 flex items-center justify-center shrink-0 shadow-xs">
+                                                        <FileText className="w-4 h-4 text-emerald-600" />
+                                                      </span>
+                                                      <div className="min-w-0">
+                                                        <p className="text-xs font-bold text-foreground truncate">{attachment.name}</p>
+                                                        <p className="text-[10px] text-muted-foreground">ملف مرفق مع القرار</p>
+                                                      </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                      <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                          setFilePreview({
+                                                            open: true,
+                                                            type: isPdf ? 'pdf' : isImage ? 'image' : 'other',
+                                                            content: attachment.url,
+                                                            name: attachment.name
+                                                          });
+                                                        }}
+                                                        className="h-7 text-xs px-2.5 bg-white hover:bg-emerald-100/50 text-emerald-700 border-emerald-300 font-semibold gap-1"
+                                                      >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        <span>عرض</span>
+                                                      </Button>
+                                                      <a
+                                                        href={attachment.url}
+                                                        download={attachment.name}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center h-7 px-2 text-xs font-medium rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs gap-1"
+                                                        title="تحميل الملف"
+                                                      >
+                                                        <Download className="w-3 h-3" />
+                                                        <span className="hidden sm:inline">تحميل</span>
+                                                      </a>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </>
+                                            );
+                                          })()}
                                         </div>
                                       </div>
                                     ))}

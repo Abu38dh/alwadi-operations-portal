@@ -605,11 +605,52 @@ export default function RequestDetail({ request, onEdit, onBack, userId, showHis
                     <p className="text-sm text-foreground/80">
                       <span className="font-medium text-primary">{action.actorName}</span> ({translateRole(action.actorRole)})
                     </p>
-                    {action.comment && (
-                      <div className="mt-1 p-2 bg-slate-50 rounded text-xs text-muted-foreground border border-slate-100">
-                        {action.comment}
-                      </div>
-                    )}
+                    {(() => {
+                      const cleanedComment = action.comment ? action.comment.replace(/\n*\[تم إرفاق ملف:[^\]]*\]/g, '').trim() : '';
+                      const attachment = (action as any).attachment;
+                      const isPdf = attachment?.type === 'pdf' || attachment?.url?.startsWith('data:application/pdf') || attachment?.name?.endsWith('.pdf');
+                      const isImage = attachment?.url?.startsWith('data:image') || /\.(png|jpe?g|gif|webp)$/i.test(attachment?.name || '');
+
+                      return (
+                        <>
+                          {cleanedComment && (
+                            <div className="mt-1 p-2 bg-slate-50 rounded text-xs text-muted-foreground border border-slate-100 whitespace-pre-wrap">
+                              {cleanedComment}
+                            </div>
+                          )}
+                          {attachment && attachment.url && (
+                            <div className="mt-2 flex items-center justify-between p-2 bg-emerald-50/70 border border-emerald-200/80 rounded-lg gap-2">
+                              <span className="text-xs font-semibold text-foreground truncate">{attachment.name}</span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFilePreview({
+                                      open: true,
+                                      type: isPdf ? 'pdf' : isImage ? 'image' : 'other',
+                                      content: attachment.url,
+                                      name: attachment.name
+                                    });
+                                  }}
+                                  className="px-2 py-1 text-xs font-medium text-emerald-700 bg-white border border-emerald-300 rounded hover:bg-emerald-50"
+                                >
+                                  عرض
+                                </button>
+                                <a
+                                  href={attachment.url}
+                                  download={attachment.name}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded hover:bg-slate-50"
+                                >
+                                  تحميل
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               ))
