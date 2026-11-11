@@ -312,7 +312,12 @@ export default function DelegationRequest({ userData }: DelegationRequestProps) 
                                         </div>
                                     );
                                 })}
-                                {formTemplates.length === 0 && (
+                                {formTemplates.length === 0 && !loading && (
+                                    <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-lg col-span-full">
+                                        ليس لديك أي صلاحيات اعتماد أو مراجعة في مسارات العمل لتفويضها.
+                                    </div>
+                                )}
+                                {loading && (
                                     <div className="text-xs text-muted-foreground col-span-full">جاري تحميل أنواع المعاملات...</div>
                                 )}
                             </div>

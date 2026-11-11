@@ -336,8 +336,20 @@ export function AdminDelegationsDialog({ user, currentUserId, isOpen, onClose }:
                     </label>
                   );
                 })}
-                {formTemplates.length === 0 && (
-                  <p className="text-xs text-muted-foreground col-span-full py-1">جاري تحميل المعاملات المتاحة...</p>
+                {formTemplates.length === 0 && !loading && (
+                  <div className="col-span-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                    <p className="font-bold flex items-center gap-1.5 mb-1">
+                      ⚠️ لا توجد صلاحيات اعتماد لهذا الموظف
+                    </p>
+                    <p className="text-amber-700">
+                      هذا الموظف دوره الحالي ليس معتمداً في أي مسار عمل (لا يملك صلاحية اعتماد أو رفض أي من النماذج)، لذلك لا توجد معاملات يمكن تفويض بديل عنها.
+                    </p>
+                  </div>
+                )}
+                {loading && (
+                  <p className="text-xs text-muted-foreground col-span-full py-2 flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> جاري تحميل المعاملات المتاحة...
+                  </p>
                 )}
               </div>
             </div>
@@ -347,7 +359,11 @@ export function AdminDelegationsDialog({ user, currentUserId, isOpen, onClose }:
               <Button variant="outline" size="sm" onClick={onClose} className="h-9 px-4 text-xs rounded-xl">
                 إلغاء
               </Button>
-              <Button onClick={handleCreate} className="bg-primary hover:bg-primary/90 text-white font-bold h-9 px-5 text-xs rounded-xl gap-1.5 shadow-sm">
+              <Button 
+                onClick={handleCreate} 
+                disabled={formTemplates.length === 0 || loading}
+                className="bg-primary hover:bg-primary/90 text-white font-bold h-9 px-5 text-xs rounded-xl gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ArrowRightLeft className="w-3.5 h-3.5" />
                 تأكيد وتفعيل التفويض
               </Button>

@@ -669,6 +669,7 @@ export async function getApprovableFormTemplates(userId: string) {
         }
 
         const roleId = user.role_id
+        const isAdmin = user.roles?.role_name?.toLowerCase() === 'admin'
 
         // Get all active templates with their workflows and steps
         const allTemplates = await db.form_templates.findMany({
@@ -685,6 +686,13 @@ export async function getApprovableFormTemplates(userId: string) {
                 }
             }
         })
+
+        if (isAdmin) {
+            return {
+                success: true,
+                data: allTemplates.map(t => ({ form_id: t.form_id, name: t.name }))
+            }
+        }
 
         // Filter templates where the user's role is involved in any workflow step
         const approvableTemplates = allTemplates.filter(template => {
@@ -711,10 +719,9 @@ export async function getApprovableFormTemplates(userId: string) {
             return false
         })
 
-        const templatesToReturn = approvableTemplates.length > 0 ? approvableTemplates : allTemplates;
         return {
             success: true,
-            data: templatesToReturn.map(t => ({ form_id: t.form_id, name: t.name }))
+            data: approvableTemplates.map(t => ({ form_id: t.form_id, name: t.name }))
         }
     } catch (error) {
         console.error("Get Approvable Templates Error:", error)
