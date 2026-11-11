@@ -19,7 +19,7 @@ interface RequestListProps {
 export default function RequestList({ requests, selectedId, onSelect, loading }: RequestListProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
-  const searchLower = searchTerm.trim().toLowerCase()
+  const searchLower = (searchTerm || "").trim().toLowerCase()
   const filteredRequests = (requests || []).filter(req => {
     if (!req) return false
     const title = (req.title || req.type || "").toLowerCase()

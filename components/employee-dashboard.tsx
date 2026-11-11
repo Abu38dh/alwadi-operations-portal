@@ -360,7 +360,7 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
       if (result.success && result.data) {
         setAvailableForms(result.data.map((form: any) => ({
           id: form.form_id.toString(),
-          label: form.name,
+          label: form.name || "نموذج",
           icon: "📝"
         })))
       }
@@ -1047,11 +1047,11 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
               }
               const statusLabel = (statusMap[item.status] || "").toLocaleLowerCase('ar')
               return (
-                item.requestId?.toString().includes(q) ||
-                item.requestType?.toLocaleLowerCase('ar').includes(q) ||
-                item.applicant?.toLocaleLowerCase('ar').includes(q) ||
-                item.applicantId?.toLocaleLowerCase('ar').includes(q) ||
-                item.comment?.toLocaleLowerCase('ar').includes(q) ||
+                (item.requestId?.toString() || "").includes(q) ||
+                (item.requestType || "").toLocaleLowerCase('ar').includes(q) ||
+                (item.applicant || "").toLocaleLowerCase('ar').includes(q) ||
+                (item.applicantId || "").toLocaleLowerCase('ar').includes(q) ||
+                (item.comment || "").toLocaleLowerCase('ar').includes(q) ||
                 statusLabel.includes(q)
               )
             })

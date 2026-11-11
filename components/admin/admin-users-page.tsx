@@ -203,7 +203,7 @@ export default function AdminUsersPage({
     }
 
     // Search by name, university_id, or email
-    if (searchTerm.trim()) {
+    if (searchTerm && searchTerm.trim()) {
       const term = searchTerm.trim().toLowerCase()
       result = (result || []).filter((u: any) =>
         (u?.full_name || "").toLowerCase().includes(term) ||

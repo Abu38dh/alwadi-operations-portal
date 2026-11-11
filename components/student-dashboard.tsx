@@ -200,7 +200,7 @@ export default function StudentDashboard({ onLogout, userData }: StudentDashboar
       if (formsResult.success && formsResult.data) {
         setAvailableForms(formsResult.data.map((form: any) => ({
           id: form.form_id.toString(),
-          label: form.name,
+          label: form.name || "نموذج",
           icon: "📝" // Default icon
         })))
       }
