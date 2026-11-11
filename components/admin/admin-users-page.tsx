@@ -205,10 +205,10 @@ export default function AdminUsersPage({
     // Search by name, university_id, or email
     if (searchTerm.trim()) {
       const term = searchTerm.trim().toLowerCase()
-      result = result.filter((u: any) =>
-        u.full_name?.toLowerCase().includes(term) ||
-        u.university_id?.toLowerCase().includes(term) ||
-        u.email?.toLowerCase().includes(term)
+      result = (result || []).filter((u: any) =>
+        (u?.full_name || "").toLowerCase().includes(term) ||
+        (u?.university_id || "").toLowerCase().includes(term) ||
+        (u?.email || "").toLowerCase().includes(term)
       )
     }
 
@@ -632,8 +632,9 @@ export default function AdminUsersPage({
                   <SelectContent dir="rtl">
                     {roles
                       .filter(role => {
+                        if (!role || !role.role_name) return false;
                         if (!currentUserScope.role || currentUserScope.role === 'admin') return true;
-                        const rName = role.role_name.toLowerCase();
+                        const rName = (role.role_name || "").toLowerCase();
                         if (currentUserScope.role === 'dean') return ['head', 'manager', 'head_of_department', 'employee', 'student'].includes(rName);
                         if (['head', 'manager', 'head_of_department'].includes(currentUserScope.role)) return rName === 'student';
                         return false;

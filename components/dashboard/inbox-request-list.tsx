@@ -21,11 +21,15 @@ import { Search } from "lucide-react"
 export function InboxRequestList({ requests, selectedRequestId, onSelectRequest, onViewHistory, className }: InboxRequestListProps) {
     const [searchTerm, setSearchTerm] = useState("")
 
-    const filteredRequests = requests.filter(req =>
-        (req.title || req.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.id.toString().includes(searchTerm) ||
-        (req.applicant && req.applicant.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    const searchLower = searchTerm.trim().toLowerCase()
+    const filteredRequests = (requests || []).filter(req => {
+        if (!req) return false
+        const title = (req.title || req.type || "").toLowerCase()
+        const id = String(req.id || "")
+        const applicant = (req.applicant || "").toLowerCase()
+        const refNo = String(req.reference_no || "")
+        return title.includes(searchLower) || id.includes(searchLower) || applicant.includes(searchLower) || refNo.includes(searchLower)
+    })
 
     const getStatusBadge = (status: string) => {
         const statusMap: Record<string, { label: string; className: string }> = {

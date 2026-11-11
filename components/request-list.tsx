@@ -19,12 +19,15 @@ interface RequestListProps {
 export default function RequestList({ requests, selectedId, onSelect, loading }: RequestListProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
-  const filteredRequests = requests.filter(req =>
-    (req.title || req.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.id.includes(searchTerm) ||
-    (req.applicant && req.applicant.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const searchLower = searchTerm.trim().toLowerCase()
+  const filteredRequests = (requests || []).filter(req => {
+    if (!req) return false
+    const title = (req.title || req.type || "").toLowerCase()
+    const type = (req.type || "").toLowerCase()
+    const id = String(req.id || "")
+    const applicant = (req.applicant || "").toLowerCase()
+    return title.includes(searchLower) || type.includes(searchLower) || id.includes(searchLower) || applicant.includes(searchLower)
+  })
 
   const statusColors: Record<string, string> = {
     pending: "bg-secondary/10 text-secondary",

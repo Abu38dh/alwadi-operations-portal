@@ -68,7 +68,7 @@ export default function AdminDepartmentsPage({ onBack, currentUserId }: AdminDep
       else setError(deptsResult.error || "فشل في تحميل الأقسام")
       if (collegesResult.success && collegesResult.data) setColleges(collegesResult.data)
       if (usersResult.success && usersResult.data) {
-        setManagers(usersResult.data.filter((u: any) => u.roles?.role_name?.toLowerCase() !== "student"))
+        setManagers((usersResult.data || []).filter((u: any) => (u?.roles?.role_name || "").toLowerCase() !== "student"))
       }
     } catch {
       setError("حدث خطأ في الاتصال بقاعدة البيانات")

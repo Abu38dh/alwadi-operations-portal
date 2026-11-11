@@ -110,12 +110,12 @@ export default function AdminDashboard({ onLogout, userData, permissions = [] }:
       const result = await getEmployeeInbox(userData.university_id)
       if (result.success) {
         const mapped = (result.requests || []).map((r: any) => ({
-          id: r.requestId,
-          type: r.requestType,
-          title: r.requestType,
-          applicant: r.applicantName,
-          date: new Date(r.submittedAt).toLocaleDateString('ar-SA'),
-          status: r.status,
+          id: String(r.id || r.requestId || ""),
+          type: r.type || r.requestType || "طلب",
+          title: r.title || r.type || r.requestType || "طلب",
+          applicant: r.applicant || r.applicantName || "",
+          date: r.date || (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('ar-SA') : ""),
+          status: r.status || "pending",
           data: r,
         }))
         setInboxRequests(mapped)
