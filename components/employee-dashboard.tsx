@@ -159,35 +159,77 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
 
 
   useEffect(() => {
-    // Initial fetch
-    fetchInboxData()
-    fetchMyRequests()
-    fetchStats()
-    fetchAvailableForms()
-    fetchHistoryData()
-    import("@/app/actions/terms").then(m => m.getAllTerms().then(res => {
-      if(res.success && res.data) setTerms(res.data)
-    }))
-
-    // --- REAL-TIME UPDATES (SSE) ---
-    // Guard: EventSource is not available in SSR or some test environments
-    if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') return
-
-    const eventSource = new EventSource('/api/realtime')
-    eventSource.onmessage = (event) => {
+    // Initial fetch in parallel
+    const loadInitialData = async () => {
+      setLoading(true)
       try {
-        const data = JSON.parse(event.data)
-        if (data.type === 'refresh') {
-          fetchInboxData()
-          fetchStats()
+        const [inboxRes, requestsRes, statsRes, formsRes, historyRes, termsRes] = await Promise.all([
+          getEmployeeInbox(userData.university_id),
+          getEmployeeRequests(userData.university_id),
+          getEmployeeStats(userData.university_id),
+          getAvailableFormTemplates(userData.university_id),
+          import("@/app/actions/employee").then(m => m.getEmployeeHistory(userData.university_id)),
+          import("@/app/actions/terms").then(m => m.getAllTerms())
+        ])
+
+        if (inboxRes.success && inboxRes.requests) {
+          const mappedRequests: Request[] = inboxRes.requests.map((r: any) => ({
+            ...r,
+            status: r.status as any
+          }))
+          setInboxRequests(mappedRequests)
+          if (mappedRequests.length > 0 && currentView === 'inbox' && typeof window !== 'undefined' && window.innerWidth >= 768) {
+            setSelectedRequest(mappedRequests[0])
+          }
         }
-      } catch (err) {}
-    }
-    eventSource.onerror = () => {
-      // Connection error — browser will auto-retry
+        if (requestsRes.success && requestsRes.requests) {
+          setMyRequests(requestsRes.requests.map((r: any) => ({
+            ...r,
+            applicant: r.users?.full_name || userData.full_name,
+            status: r.status as any,
+            type: r.title || r.type
+          })))
+        }
+        if (statsRes.success && statsRes.data) {
+          setStats(statsRes.data)
+        }
+        if (formsRes.success && formsRes.data) {
+          setAvailableForms(formsRes.data)
+        }
+        if (historyRes.success && historyRes.history) {
+          setHistoryRequests(historyRes.history)
+        }
+        if (termsRes.success && termsRes.data) {
+          setTerms(termsRes.data)
+        }
+      } catch (err) {
+        console.error("Dashboard initial load error:", err)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return () => eventSource.close() // Cleanup on unmount
+    loadInitialData()
+
+    // --- REAL-TIME UPDATES (SSE) only in development to prevent Vercel Serverless connection exhaustion ---
+    if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') return
+    let eventSource: EventSource | null = null
+    if (process.env.NODE_ENV === 'development') {
+      eventSource = new EventSource('/api/realtime')
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          if (data.type === 'refresh') {
+            fetchInboxData()
+            fetchStats()
+          }
+        } catch (err) {}
+      }
+    }
+
+    return () => {
+      if (eventSource) eventSource.close()
+    }
   }, [])
 
   useEffect(() => {

@@ -6,15 +6,14 @@ import { Prisma } from "@prisma/client"
 import * as bcrypt from "bcryptjs"
 
 export async function getAdminStats() {
-    const totalUsers = await db.users.count()
-    const totalRequests = await db.requests.count()
-    const activeRequests = await db.requests.count({ where: { status: 'pending' } })
-    const totalForms = await db.form_templates.count({ where: { is_active: true } })
+    const [totalUsers, totalRequests, activeRequests, totalForms, completedRequests] = await Promise.all([
+        db.users.count(),
+        db.requests.count(),
+        db.requests.count({ where: { status: 'pending' } }),
+        db.form_templates.count({ where: { is_active: true } }),
+        db.requests.count({ where: { status: { in: ['approved', 'rejected'] } } })
+    ])
 
-    // Calculate completion rate
-    const completedRequests = await db.requests.count({
-        where: { status: { in: ['approved', 'rejected'] } }
-    })
     const completionRate = totalRequests > 0
         ? Math.round((completedRequests / totalRequests) * 100)
         : 0

@@ -884,49 +884,41 @@ export async function getEmployeeStats(userId: string) {
 
         if (!user) return { success: false, error: "المستخدم غير موجود" }
 
-        // Count unique requests by this employee based on their CURRENT status
-        const returnedCount = await db.requests.count({
-            where: {
-                status: 'returned',
-                request_actions: {
-                    some: { actor_id: user.user_id }
-                }
-            }
-        })
-
-        const approvedCount = await db.requests.count({
-            where: {
-                status: 'approved',
-                request_actions: {
-                    some: { actor_id: user.user_id }
-                }
-            }
-        })
-
-        const rejectedCount = await db.requests.count({
-            where: {
-                status: 'rejected',
-                request_actions: {
-                    some: { actor_id: user.user_id }
-                }
-            }
-        })
-
-        // Pending in inbox (including Delegations)
+        // Run count queries and delegations in parallel via Promise.all
         const now = new Date()
-        const activeDelegations = await db.delegations.findMany({
-            where: {
-                grantee_user_id: user.user_id,
-                is_active: true,
-                starts_at: { lte: now },
-                ends_at: { gte: now }
-            },
-            include: {
-                users_delegations_grantor_user_idTousers: {
-                    select: { role_id: true }
+        const [returnedCount, approvedCount, rejectedCount, activeDelegations] = await Promise.all([
+            db.requests.count({
+                where: {
+                    status: 'returned',
+                    request_actions: { some: { actor_id: user.user_id } }
                 }
-            }
-        })
+            }),
+            db.requests.count({
+                where: {
+                    status: 'approved',
+                    request_actions: { some: { actor_id: user.user_id } }
+                }
+            }),
+            db.requests.count({
+                where: {
+                    status: 'rejected',
+                    request_actions: { some: { actor_id: user.user_id } }
+                }
+            }),
+            db.delegations.findMany({
+                where: {
+                    grantee_user_id: user.user_id,
+                    is_active: true,
+                    starts_at: { lte: now },
+                    ends_at: { gte: now }
+                },
+                include: {
+                    users_delegations_grantor_user_idTousers: {
+                        select: { role_id: true }
+                    }
+                }
+            })
+        ])
 
         // Build OR conditions for authorization matching getEmployeeInbox
         const authOrConditions: any[] = []

@@ -151,7 +151,7 @@ export default function AdminDashboard({ onLogout, userData, permissions = [] }:
       if (document.visibilityState === 'visible') {
         fetchStats()
       }
-    }, 5000)
+    }, 30000) // Poll every 30s instead of 5s to reduce database latency
 
     return () => clearInterval(intervalId)
   }, [])
