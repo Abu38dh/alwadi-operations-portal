@@ -502,19 +502,28 @@ export async function processRequest(
             let finalComment = comment
             if (attachmentData && attachmentName) {
                 try {
-                    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-                    if (!fs.existsSync(uploadDir)) {
-                        fs.mkdirSync(uploadDir, { recursive: true })
+                    let storageLocation = attachmentData
+                    // In local dev, also try saving to public/uploads; on Vercel read-only, attachmentData (data URL) is used directly
+                    try {
+                        const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+                        if (!fs.existsSync(uploadDir)) {
+                            fs.mkdirSync(uploadDir, { recursive: true })
+                        }
+                        const fileName = `req-${request.request_id}-act-${Date.now()}-${attachmentName.replace(/[^a-zA-Z0-9.-]/g, "_")}`
+                        const filePath = path.join(uploadDir, fileName)
+                        const base64Data = attachmentData.split(';base64,').pop() || ""
+                        fs.writeFileSync(filePath, base64Data, { encoding: 'base64' })
+                        storageLocation = `/uploads/${fileName}`
+                    } catch {
+                        // Vercel serverless environment: store data URL directly
+                        storageLocation = attachmentData
                     }
-                    const fileName = `req-${request.request_id}-act-${Date.now()}-${attachmentName}`
-                    const filePath = path.join(uploadDir, fileName)
-                    const base64Data = attachmentData.split(';base64,').pop() || ""
-                    fs.writeFileSync(filePath, base64Data, { encoding: 'base64' })
+
                     await tx.attachments.create({
                         data: {
                             request_id: request.request_id,
                             uploader_id: user.user_id,
-                            storage_location: `/uploads/${fileName}`,
+                            storage_location: storageLocation,
                             file_type: attachmentName.split('.').pop() || 'file',
                             uploaded_at: new Date()
                         }
@@ -522,7 +531,6 @@ export async function processRequest(
                     finalComment += `\n\n[تم إرفاق ملف: ${attachmentName}]`
                 } catch (err) {
                     console.error("Failed to save attachment:", err)
-                    finalComment += `\n\n[فشل رفع الملف: ${attachmentName}]`
                 }
             }
 

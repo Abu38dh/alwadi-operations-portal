@@ -19,24 +19,32 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    // Create a filename safe for URLs and filesystem
-    const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = Date.now() + "_" + sanitizedFilename;
+    const base64 = buffer.toString("base64");
+    const mimeType = file.type || "application/octet-stream";
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    let fileUrl = dataUrl;
+
+    // In local dev, save to public/uploads if writable; on Vercel read-only filesystem, use dataUrl
+    try {
+      const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const filename = Date.now() + "_" + sanitizedFilename;
+      const uploadDir = path.join(process.cwd(), "public/uploads");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const filePath = path.join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      fileUrl = `/uploads/${filename}`;
+    } catch {
+      // Vercel serverless read-only environment: use dataUrl
+      fileUrl = dataUrl;
     }
 
-    const filePath = path.join(uploadDir, filename);
-
-    await writeFile(filePath, buffer);
-
-    // Return the relative URL
+    // Return the URL (data URL or relative URL)
     return NextResponse.json({
       success: true,
-      url: `/uploads/${filename}`,
+      url: fileUrl,
       name: file.name,
       type: file.type
     });
