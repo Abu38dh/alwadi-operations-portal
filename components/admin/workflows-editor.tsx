@@ -63,6 +63,7 @@ export default function WorkflowsEditor({ onBack, currentUserId }: WorkflowsEdit
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [showAddWorkflow, setShowAddWorkflow] = useState(false)
   const [editingWorkflow, setEditingWorkflow] = useState<any>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -143,7 +144,7 @@ export default function WorkflowsEditor({ onBack, currentUserId }: WorkflowsEdit
         step_id: step.step_id || undefined,
         name: step.name,
         order: index + 1,
-        approver_role_id: step.approver_role_id || 0,
+        approver_role_id: step.approver_user_id ? null : (step.approver_role_id || null),
         approver_user_id: step.approver_user_id || null,
         sla_hours: step.sla_hours || 24,
         is_final: index === steps.length - 1,
@@ -312,7 +313,7 @@ export default function WorkflowsEditor({ onBack, currentUserId }: WorkflowsEdit
       updatedSteps[editingStepIndex] = {
         step_id: updatedSteps[editingStepIndex].step_id,
         name: currentStep.name,
-        approver_role_id: roleId,
+        approver_role_id: userId ? null : roleId,
         approver_user_id: userId,
         roles: selectedRole,
         users: selectedUser,
@@ -323,8 +324,42 @@ export default function WorkflowsEditor({ onBack, currentUserId }: WorkflowsEdit
         escalation_user_id: hasEscalation ? escUserId : null,
         escalate_to_next: hasEscalation ? escToNext : false
       }
-      setSteps(sanitizeSteps(updatedSteps))
-      toast({ title: "تم التعديل", description: "تم تعديل الخطوة بنجاح" })
+      const sanitized = sanitizeSteps(updatedSteps)
+      setSteps(sanitized)
+
+      // Auto-persist directly to database if editing an existing workflow
+      if (editingWorkflow) {
+        setIsSaving(true)
+        const stepsData = sanitized.map((s, idx) => ({
+          step_id: s.step_id || undefined,
+          name: s.name,
+          order: idx + 1,
+          approver_role_id: s.approver_user_id ? null : (s.approver_role_id || null),
+          approver_user_id: s.approver_user_id || null,
+          sla_hours: s.sla_hours || 24,
+          is_final: idx === sanitized.length - 1,
+          escalation_role_id: s.escalation_role_id || null,
+          escalation_user_id: s.escalation_user_id || null,
+          escalate_to_next: s.escalate_to_next || false
+        }))
+        updateWorkflow(editingWorkflow.workflow_id, {
+          name: workflowName,
+          steps: stepsData,
+          requesterId: currentUserId
+        }).then((result) => {
+          setIsSaving(false)
+          if (result.success) {
+            toast({ title: "تم الحفظ", description: "تم حفظ الخطوة في قاعدة البيانات فوراً" })
+          } else {
+            toast({ title: "تنبيه", description: result.error || "فشل حفظ التعديل", variant: "destructive" })
+          }
+        }).catch((err) => {
+          setIsSaving(false)
+          console.error("Auto-save step error:", err)
+        })
+      } else {
+        toast({ title: "تم التعديل", description: "تم تعديل الخطوة بنجاح" })
+      }
 
       setCurrentStep({
         name: "",
@@ -1072,11 +1107,9 @@ function SortableStep({ step, index, editingStepIndex, onEdit, onDelete }: any) 
             <div className="flex items-center justify-between pl-16">
               <p className="text-gray-600 text-sm">
                 <span className="text-gray-400 ml-1">المسؤول:</span>
-                {step.users?.full_name ? `المستخدم: ${step.users.full_name}` :
-                  step.roles?.role_name ? `الدور: ${translateRole(step.roles.role_name)}` :
-                    step.approver_user_id ? `مستخدم #${step.approver_user_id}` :
-                      step.approver_role_id ? `دور #${step.approver_role_id}` :
-                        "غير محدد"}
+                {step.users?.full_name ? step.users.full_name :
+                  step.approver_user_id ? `مستخدم #${step.approver_user_id}` :
+                    (step.roles?.role_name ? translateRole(step.roles.role_name) : "لم يتم تحديد مستخدم")}
               </p>
             </div>
             <div className="flex items-center text-sm text-gray-500">

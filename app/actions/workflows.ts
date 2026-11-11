@@ -12,7 +12,8 @@ export async function getAllWorkflows() {
             include: {
                 workflow_steps: {
                     include: {
-                        roles: true
+                        roles: true,
+                        users: true
                     },
                     orderBy: { order: 'asc' }
                 },
@@ -159,7 +160,7 @@ export async function createWorkflow(data: {
                     create: data.steps.map(step => ({
                         name: step.name,
                         order: step.order,
-                        approver_role_id: step.approver_role_id || null,
+                        approver_role_id: step.approver_user_id ? null : (step.approver_role_id || null),
                         approver_user_id: step.approver_user_id || null,
                         sla_hours: step.sla_hours || null,
                         is_final: step.is_final || false,
@@ -293,7 +294,7 @@ export async function updateWorkflow(
                     data: {
                         name: item.data.name,
                         order: item.data.order,
-                        approver_role_id: item.data.approver_role_id || null,
+                        approver_role_id: item.data.approver_user_id ? null : (item.data.approver_role_id || null),
                         approver_user_id: item.data.approver_user_id || null,
                         sla_hours: item.data.sla_hours || null,
                         is_final: item.data.is_final || false,
@@ -311,7 +312,7 @@ export async function updateWorkflow(
                         workflow_id: workflowId,
                         name: step.name,
                         order: step.order,
-                        approver_role_id: step.approver_role_id || null,
+                        approver_role_id: step.approver_user_id ? null : (step.approver_role_id || null),
                         approver_user_id: step.approver_user_id || null,
                         sla_hours: step.sla_hours || null,
                         is_final: step.is_final || false,
