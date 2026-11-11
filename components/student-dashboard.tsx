@@ -34,16 +34,19 @@ interface StudentDashboardProps {
 export default function StudentDashboard({ onLogout, userData }: StudentDashboardProps) {
   const [selectedRequest, setSelectedRequest] = useState<string>("")
   type ViewType = "requests" | "submit" | "settings"
-  const [currentView, setCurrentView] = useState<ViewType>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = window.sessionStorage.getItem('studentDashboardView')
-      if (saved) return saved as ViewType
-    }
-    return "requests"
-  })
+  const [currentView, setCurrentView] = useState<ViewType>("requests")
 
   useEffect(() => {
-    window.sessionStorage.setItem('studentDashboardView', currentView)
+    try {
+      const saved = window.sessionStorage.getItem('studentDashboardView')
+      if (saved) setCurrentView(saved as ViewType)
+    } catch (e) {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem('studentDashboardView', currentView)
+    } catch (e) {}
   }, [currentView])
   const [selectedRequestType, setSelectedRequestType] = useState<string | null>(null)
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null)
@@ -449,9 +452,9 @@ export default function StudentDashboard({ onLogout, userData }: StudentDashboar
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-                    {requestTypes.filter(f => f.label.toLowerCase().includes(formSearchQuery.toLowerCase())).length > 0 ? (
+                    {requestTypes.filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase())).length > 0 ? (
                       requestTypes
-                        .filter(f => f.label.toLowerCase().includes(formSearchQuery.toLowerCase()))
+                        .filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase()))
                         .map((type) => (
                           <div
                             key={type.id}

@@ -321,7 +321,7 @@ export default function FormTemplatesList({ onEditForm, onCreateNewForm, onBack,
 
   const filteredForms = forms.filter(form => {
     if (form.name === "طلب تفويض صلاحيات") return false
-    const matchesSearch = form.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (form?.name || "").toLowerCase().includes((searchTerm || "").toLowerCase())
     // For audience filter, check the target_audience JSON field
     const matchesAudience = audienceFilter === "all" ||
       (form.target_audience && form.target_audience.includes(audienceFilter))

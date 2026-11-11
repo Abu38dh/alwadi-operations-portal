@@ -792,7 +792,7 @@ export default function AdminUsersPage({
                           }} className="text-muted-foreground hover:text-primary">
                           <FileText className="w-4 h-4" />
                         </Button>
-                        {user.roles?.role_name?.toLowerCase() !== 'student' && canDelegate && (
+                        {(user.roles?.role_name || "").toLowerCase() !== 'student' && canDelegate && (
                           <Button
                             variant="ghost"
                             size="icon"

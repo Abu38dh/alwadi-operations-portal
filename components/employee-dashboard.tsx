@@ -64,16 +64,21 @@ interface EmployeeDashboardProps {
 
 export default function EmployeeDashboard({ onLogout, permissions = [], userData }: EmployeeDashboardProps) {
   type ViewType = "requests" | "inbox" | "submit" | "reviews" | "forms" | "users" | "departments" | "reports" | "workflows" | "delegation" | "settings" | "history" | "absences" | "terms" | "levels"
-  const [currentView, setCurrentView] = useState<ViewType>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = window.sessionStorage.getItem('employeeDashboardView')
-      if (saved) return saved as ViewType
-    }
-    return "requests"
-  })
+  const [currentView, setCurrentView] = useState<ViewType>("requests")
 
   useEffect(() => {
-    window.sessionStorage.setItem('employeeDashboardView', currentView)
+    try {
+      const saved = window.sessionStorage.getItem('employeeDashboardView')
+      if (saved) setCurrentView(saved as ViewType)
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem('employeeDashboardView', currentView)
+    } catch (e) {}
     setSelectedRequest(null)
   }, [currentView])
 
@@ -1185,9 +1190,9 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                    {availableForms.filter(f => f.label.toLowerCase().includes(formSearchQuery.toLowerCase())).length > 0 ? (
+                    {availableForms.filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase())).length > 0 ? (
                       availableForms
-                        .filter(f => f.label.toLowerCase().includes(formSearchQuery.toLowerCase()))
+                        .filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase()))
                         .map((form) => (
                           <div
                             key={form.id}

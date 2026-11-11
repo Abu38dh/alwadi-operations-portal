@@ -764,7 +764,7 @@ export default function WorkflowsEditor({ onBack, currentUserId }: WorkflowsEdit
   }
 
   const filtered = workflows.filter(w =>
-    w.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (w?.name || "").toLowerCase().includes((searchTerm || "").toLowerCase())
   )
 
   return (
