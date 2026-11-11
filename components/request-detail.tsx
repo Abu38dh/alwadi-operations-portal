@@ -274,7 +274,14 @@ export default function RequestDetail({ request, onEdit, onBack, userId, showHis
                     )
                   }
 
-                  const value = submissionData[field.key];
+                  const fieldKey = field.key || field.id;
+                  const value = submissionData[fieldKey] !== undefined
+                    ? submissionData[fieldKey]
+                    : (field.id && submissionData[field.id] !== undefined
+                        ? submissionData[field.id]
+                        : (field.key && submissionData[field.key] !== undefined
+                            ? submissionData[field.key]
+                            : undefined));
                   if (value === undefined || value === null || value === '') return null;
 
                   return (

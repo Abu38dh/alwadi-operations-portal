@@ -783,145 +783,162 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                                 <CardTitle>تفاصيل الطلب</CardTitle>
                               </CardHeader>
                               <CardContent className="space-y-4">
-                                {Array.isArray(selectedRequest.formSchema) && selectedRequest.submissionData && Object.keys(selectedRequest.submissionData).length > 0 ? (
-                                  selectedRequest.formSchema.map((field: any) => {
-                                    if (field.type === 'section') {
-                                      return (
-                                        <h5 key={field.id} className="font-bold text-base text-primary border-b pb-2 mt-4 mb-2">
-                                          {field.label}
-                                        </h5>
-                                      )
-                                    }
+                                {(() => {
+                                  const rawSchema = selectedRequest.formSchema;
+                                  const parsedSchema: any[] = Array.isArray(rawSchema)
+                                    ? rawSchema
+                                    : (typeof rawSchema === 'string'
+                                        ? (() => { try { return JSON.parse(rawSchema); } catch { return []; } })()
+                                        : []);
+                                  const subData = selectedRequest.submissionData || {};
+                                  const subDataKeys = Object.keys(subData);
 
-                                    const value = selectedRequest.submissionData?.[field.key];
-                                    if (value === undefined || value === null || value === '') return null;
+                                  if (subDataKeys.length === 0) {
+                                    return <p className="text-sm text-muted-foreground italic">لا توجد بيانات مدخلة لهذا الطلب</p>;
+                                  }
 
+                                  if (parsedSchema.length > 0) {
                                     return (
-                                      <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 border-b last:border-0 pb-2 last:pb-0">
-                                        <span className="text-sm font-medium text-muted-foreground md:col-span-1">{field.label}:</span>
-                                        <span className="text-sm font-semibold text-foreground md:col-span-2 break-words whitespace-pre-wrap">
-                                          {typeof value === 'boolean' ? (value ? 'نعم' : 'لا') :
-                                            field.type === 'file' ? (
-                                              typeof value === 'string' ? (
-                                                /* Render file preview */
-                                                (() => {
-                                                  const isDataUrl = value.startsWith('data:')
-                                                  const isImage = isDataUrl ? value.startsWith('data:image') : /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(value)
-                                                  const isPdf = isDataUrl ? value.startsWith('data:application/pdf') : /\.pdf$/i.test(value)
+                                      <>
+                                        {parsedSchema.map((field: any) => {
+                                          if (field.type === 'section') {
+                                            return (
+                                              <h5 key={field.id} className="font-bold text-base text-primary border-b pb-2 mt-4 mb-2">
+                                                {field.label}
+                                              </h5>
+                                            )
+                                          }
 
-                                                  if (isImage) {
-                                                    return (
-                                                      <div
-                                                        className="mt-2 text-center cursor-pointer hover:opacity-95 transition-opacity"
-                                                        onClick={() => setFilePreview({
-                                                          open: true,
-                                                          type: 'image',
-                                                          content: value,
-                                                          name: field.label
-                                                        })}
-                                                      >
-                                                        <NextImage
-                                                          src={value}
-                                                          alt="Attached file"
-                                                          width={400}
-                                                          height={300}
-                                                          className="max-w-full h-auto max-h-[300px] rounded-md border border-border mx-auto object-contain"
-                                                          unoptimized={true}
-                                                        />
-                                                      </div>
+                                          const fieldKey = field.key || field.id;
+                                          const value = subData[fieldKey] !== undefined
+                                            ? subData[fieldKey]
+                                            : (field.id && subData[field.id] !== undefined
+                                                ? subData[field.id]
+                                                : (field.key && subData[field.key] !== undefined
+                                                    ? subData[field.key]
+                                                    : undefined));
+
+                                          if (value === undefined || value === null || value === '') return null;
+
+                                          return (
+                                            <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 border-b last:border-0 pb-2 last:pb-0">
+                                              <span className="text-sm font-medium text-muted-foreground md:col-span-1">{field.label}:</span>
+                                              <span className="text-sm font-semibold text-foreground md:col-span-2 break-words whitespace-pre-wrap">
+                                                {typeof value === 'boolean' ? (value ? 'نعم' : 'لا') :
+                                                  field.type === 'file' ? (
+                                                    typeof value === 'string' ? (
+                                                      /* Render file preview */
+                                                      (() => {
+                                                        const isDataUrl = value.startsWith('data:')
+                                                        const isImage = isDataUrl ? value.startsWith('data:image') : /\.(jpeg|jpg|gif|png|webp|svg)$/i.test(value)
+                                                        const isPdf = isDataUrl ? value.startsWith('data:application/pdf') : /\.pdf$/i.test(value)
+
+                                                        if (isImage) {
+                                                          return (
+                                                            <div
+                                                              className="mt-2 text-center cursor-pointer hover:opacity-95 transition-opacity"
+                                                              onClick={() => setFilePreview({
+                                                                open: true,
+                                                                type: 'image',
+                                                                content: value,
+                                                                name: field.label
+                                                             })}
+                                                            >
+                                                              <NextImage
+                                                                src={value}
+                                                                alt="Attached file"
+                                                                width={400}
+                                                                height={300}
+                                                                className="max-w-full h-auto max-h-[300px] rounded-md border border-border mx-auto object-contain"
+                                                                unoptimized={true}
+                                                              />
+                                                            </div>
+                                                          )
+                                                        }
+
+                                                        return (
+                                                          <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                              setFilePreview({
+                                                                open: true,
+                                                                type: isPdf ? 'pdf' : 'other',
+                                                                content: value,
+                                                                name: field.label
+                                                              })
+                                                            }}
+                                                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border-blue-200"
+                                                          >
+                                                            <FileText className="w-4 h-4" />
+                                                            {isPdf ? 'عرض ملف PDF' : 'عرض الملف'}
+                                                          </Button>
+                                                        )
+                                                      })()
+                                                    ) : (
+                                                      <span className="text-muted-foreground italic">
+                                                        لا يوجد ملف (أو تنسيق غير مدعوم)
+                                                      </span>
                                                     )
-                                                  }
+                                                  ) :
+                                                    field.type === 'date' ? (() => {
+                                                      try {
+                                                        const d = new Date(value)
+                                                        return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('ar-EG')
+                                                      } catch { return String(value) }
+                                                    })() :
+                                                      field.type === 'absence_picker' && (typeof value === 'object' || Array.isArray(value)) && value !== null ? (
+                                                        Array.isArray(value) ? (
+                                                          value.map((item: any) => `المادة: ${item.subjectName || item.subjectId}، التاريخ: ${item.date}`).join(' | ')
+                                                        ) : (
+                                                          `المادة: ${(value as any).subjectName || (value as any).subjectId}، التاريخ: ${(value as any).date}`
+                                                        )
+                                                      ) :
+                                                        typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                              </span>
+                                            </div>
+                                          )
+                                        })}
+                                      </>
+                                    );
+                                  }
 
-                                                  return (
-                                                    <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      onClick={() => {
-                                                        setFilePreview({
-                                                          open: true,
-                                                          type: isPdf ? 'pdf' : 'other',
-                                                          content: value,
-                                                          name: field.label
-                                                        })
-                                                      }}
-                                                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                                                    >
-                                                      <FileText className="w-4 h-4" />
-                                                      {isPdf ? 'عرض ملف PDF' : 'عرض الملف'}
-                                                    </Button>
-                                                  )
-                                                })()
-                                              ) : (
-                                                <span className="text-muted-foreground italic">
-                                                  لا يوجد ملف (أو تنسيق غير مدعوم)
-                                                </span>
-                                              )
-                                            ) :
-                                              field.type === 'date' ? (() => {
-                                                try {
-                                                  const d = new Date(value)
-                                                  return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('ar-EG')
-                                                } catch { return String(value) }
-                                              })() :
-                                                field.type === 'absence_picker' && (typeof value === 'object' || Array.isArray(value)) && value !== null ? (
-                                                  Array.isArray(value) ? (
-                                                    value.map((item: any) => `المادة: ${item.subjectName || item.subjectId}، التاريخ: ${item.date}`).join(' | ')
-                                                  ) : (
-                                                    `المادة: ${(value as any).subjectName || (value as any).subjectId}، التاريخ: ${(value as any).date}`
-                                                  )
-                                                ) :
-                                                  typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                  // Fallback for unformatted or custom submissionData
+                                  const orderedKeys = [
+                                    "type", "delegatee_name", "delegatee_university_id",
+                                    "start_date", "end_date", "reason", "delegated_types"
+                                  ];
+                                  const entries = Object.entries(subData);
+                                  entries.sort(([keyA], [keyB]) => {
+                                    const indexA = orderedKeys.indexOf(keyA);
+                                    const indexB = orderedKeys.indexOf(keyB);
+                                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                                    if (indexA !== -1) return -1;
+                                    if (indexB !== -1) return 1;
+                                    return keyA.localeCompare(keyB);
+                                  });
+
+                                  return entries.map(([key, value]) => {
+                                    if (key === 'reason' && value) return null;
+                                    const labelMap: Record<string, string> = {
+                                      type: "نوع التفويض",
+                                      delegatee_name: "المفوض له",
+                                      delegatee_university_id: "الرقم الوظيفي للمفوض له",
+                                      start_date: "تاريخ البدء",
+                                      end_date: "تاريخ الانتهاء",
+                                      delegated_types: "المعاملات المفوضة",
+                                    };
+                                    const label = labelMap[key] || key;
+                                    return (
+                                      <div key={key} className="grid grid-cols-1 md:grid-cols-3 gap-2 border-b last:border-0 pb-2 last:pb-0">
+                                        <span className="text-sm font-medium text-muted-foreground md:col-span-1">{label}:</span>
+                                        <span className="text-sm font-semibold text-foreground md:col-span-2 break-words">
+                                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                         </span>
                                       </div>
-                                    )
-                                  })
-                                ) : selectedRequest.submissionData && Object.keys(selectedRequest.submissionData).length > 0 ? (
-                                  (() => {
-                                    const orderedKeys = [
-                                      "type", "delegatee_name", "delegatee_university_id",
-                                      "start_date", "end_date", "reason", "delegated_types"
-                                    ];
-                                    const entries = Object.entries(selectedRequest.submissionData);
-                                    entries.sort(([keyA], [keyB]) => {
-                                      const a = orderedKeys.indexOf(keyA);
-                                      const b = orderedKeys.indexOf(keyB);
-                                      if (a === -1 && b === -1) return 0;
-                                      if (a === -1) return 1;
-                                      if (b === -1) return -1;
-                                      return a - b;
-                                    });
-
-                                    return entries.map(([key, value]) => {
-                                      const labels: Record<string, string> = {
-                                        type: "نوع الطلب",
-                                        delegatee_university_id: "الرقم الوظيفي للزميل",
-                                        delegatee_name: "اسم الموظف المفوض (الزميل)",
-                                        start_date: "تاريخ بداية التفويض",
-                                        end_date: "تاريخ نهاية التفويض",
-                                        reason: "سبب التفويض",
-                                        delegated_types: "نماذج الطلبات المفوضة"
-                                      }
-
-                                      let displayValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)
-                                      if (key === 'type' && value === 'SYSTEM_DELEGATION') displayValue = "طلب تفويض نظامي"
-                                      else if (key.includes('date') && typeof value === 'string') {
-                                        try { displayValue = new Date(value).toLocaleDateString('ar-SA') } catch(e) {}
-                                      } else if (key === 'delegated_types') {
-                                        if (value === null) displayValue = "إدارة كافة الصلاحيات الحالية وأنواع الطلبات"
-                                        else if (Array.isArray(value)) displayValue = `محدد (${value.length} نماذج)`
-                                      }
-                                      
-                                      return (
-                                      <div key={key} className="grid grid-cols-1 md:grid-cols-3 gap-2 border-b last:border-0 pb-2 last:pb-0">
-                                        <span className="text-sm font-medium text-muted-foreground md:col-span-1">{labels[key] || key}:</span>
-                                        <span className="text-sm font-semibold text-foreground md:col-span-2">{displayValue}</span>
-                                      </div>
-                                      )
-                                    })
-                                  })()
-                                ) : (
-                                  <p className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded border border-yellow-200"> لم يتم العثور على بيانات لهذا الطلب (بيانات فارغة)</p>
-                                )}
+                                    );
+                                  });
+                                })()}
                               </CardContent>
                             </Card>
 
