@@ -285,7 +285,7 @@ export default function AdminReportsPage({ onBack, currentUserId }: AdminReports
 
       {/* Stat Filter Dialog */}
       <Dialog open={statDialog.open} onOpenChange={(open) => setStatDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="sm:max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto flex flex-col" dir="rtl">
+        <DialogContent className="sm:max-w-4xl w-[95vw] max-h-[92dvh] overflow-y-auto overscroll-contain touch-pan-y flex flex-col" style={{ WebkitOverflowScrolling: 'touch' }} dir="rtl">
           {!selectedRequestData && !loadingDetails && (
             <DialogHeader className="shrink-0">
               <DialogTitle>الطلبات — {statDialog.title}</DialogTitle>

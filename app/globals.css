@@ -125,10 +125,34 @@
     outline-color: var(--ring);
   }
 
+  html,
   body {
     background-color: var(--background);
     color: var(--foreground);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Keep body interactive when no modal is open */
+  body:not([data-scroll-locked]) {
     pointer-events: auto !important;
+  }
+
+  /* Ensure Radix portals and dialogs are always interactive and scrollable on mobile */
+  [data-radix-portal],
+  [data-slot="dialog-portal"],
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"] {
+    pointer-events: auto !important;
+  }
+
+  /* Enable smooth native momentum touch scrolling on mobile */
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="dialog-content"] > div[class*="overflow-y-auto"],
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
   }
 }
 

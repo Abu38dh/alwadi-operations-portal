@@ -1339,7 +1339,7 @@ export default function AdminUsersPage({
 
       {/* User Requests Dialog */}
       <Dialog open={userRequestsDialog.open} onOpenChange={(open) => !open && setUserRequestsDialog((prev: any) => ({ ...prev, open: false }))}>
-        <DialogContent dir="rtl" className="max-w-3xl w-[95vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent dir="rtl" className="max-w-3xl w-[95vw] max-h-[92dvh] overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <DialogHeader>
             <DialogTitle>تفاصيل المستخدم وسجل الطلبات</DialogTitle>
           </DialogHeader>

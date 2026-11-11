@@ -164,7 +164,7 @@ export function AdminDelegationsDialog({ user, currentUserId, isOpen, onClose }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] p-3.5 sm:p-5 max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-md w-[95vw] p-3.5 sm:p-5 max-h-[92dvh] overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }} dir="rtl">
         <DialogHeader className="pb-2 border-b">
           <DialogTitle className="text-sm sm:text-base font-bold flex items-center gap-2.5 text-slate-800">
             <span className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center shrink-0">

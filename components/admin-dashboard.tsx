@@ -185,9 +185,9 @@ export default function AdminDashboard({ onLogout, userData, permissions = [] }:
         userId={userData?.university_id || ''}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-w-0">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block h-full">
+        <div className="hidden md:block h-full shrink-0">
           <Sidebar currentView={currentView} onViewChange={setCurrentView} userRole="admin" permissions={permissions} />
         </div>
 
@@ -211,7 +211,7 @@ export default function AdminDashboard({ onLogout, userData, permissions = [] }:
           </SheetContent>
         </Sheet>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 min-w-0">
           {currentView === "home" && (
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">

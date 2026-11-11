@@ -61,10 +61,13 @@ export default function LoginPage() {
                     id="username"
                     name="username"
                     type="text"
-                    placeholder="مثال: admin أو 101"
+                    placeholder="مثال: gm01 أو admin"
                     className="border-slate-200 h-11 pr-10 pl-3 text-right focus-visible:ring-2 focus-visible:ring-[#0B2545]/20 focus-visible:border-[#0B2545] bg-slate-50/60 hover:bg-slate-50 focus:bg-white rounded-xl text-sm transition-colors"
                     required
-                    autoComplete="off"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     dir="rtl"
                   />
                 </div>

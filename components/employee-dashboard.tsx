@@ -530,10 +530,10 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
         userId={userData.university_id}
       />
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-w-0">
 
         {/* Desktop Sidebar */}
-        <div className="hidden md:block h-full">
+        <div className="hidden md:block h-full shrink-0">
           <Sidebar
             currentView={currentView}
             onViewChange={(view) => setCurrentView(view as any)}
@@ -562,7 +562,7 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
           </SheetContent>
         </Sheet>
 
-        <main className="flex-1">
+        <main className="flex-1 min-w-0">
           {/* My Requests View */}
           {currentView === "requests" && (
             <div className="p-2.5 sm:p-6 space-y-4">
@@ -1508,161 +1508,169 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
 
       {/* Requester Interaction History Dialog */}
       <Dialog open={requesterHistoryDialog.open} onOpenChange={(open) => setRequesterHistoryDialog(prev => ({ ...prev, open }))}>
-        <DialogContent dir="rtl" className="max-w-xl w-[90vw] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>سجل تعاملاتك السابقة</DialogTitle>
-            <DialogDescription>
+        <DialogContent dir="rtl" className="max-w-xl w-[95vw] sm:w-full max-h-[92dvh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl">
+          <DialogHeader className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/90 shrink-0 text-right pr-4 pl-12">
+            <DialogTitle className="text-base sm:text-lg font-bold text-slate-800">سجل تعاملاتك السابقة</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-slate-500 mt-0.5">
               الطلبات السابقة التي قمت بمعالجتها
             </DialogDescription>
           </DialogHeader>
 
-          {/* Requester Bio Section */}
-          {!requesterHistoryDialog.loading && requesterHistoryDialog.requesterBio && (
-            <div className="bg-muted/50 p-4 rounded-lg mb-4 flex items-start gap-4 border">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                {requesterHistoryDialog.requesterBio.name.charAt(0)}
-              </div>
-              <div>
-                <h4 className="font-bold text-foreground">{requesterHistoryDialog.requesterBio.name}</h4>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>الرقم الوظيفي: {requesterHistoryDialog.requesterBio.university_id}</p>
-                  {requesterHistoryDialog.requesterBio.phone && (
-                    <p>رقم الجوال: <a href={`https://wa.me/${requesterHistoryDialog.requesterBio.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1" dir="ltr">{requesterHistoryDialog.requesterBio.phone}</a></p>
-                  )}
-                  {requesterHistoryDialog.requesterBio.email && (
-                    <p>البريد الإلكتروني: <a href={`mailto:${requesterHistoryDialog.requesterBio.email}`} className="text-primary hover:underline inline-flex items-center gap-1" dir="ltr">{requesterHistoryDialog.requesterBio.email}</a></p>
-                  )}
-                  {(requesterHistoryDialog.requesterBio.college || requesterHistoryDialog.requesterBio.department) && (
-                    <p className="flex items-center gap-1">
-                      {requesterHistoryDialog.requesterBio.college}
-                      {requesterHistoryDialog.requesterBio.college && requesterHistoryDialog.requesterBio.department ? " - " : ""}
-                      {requesterHistoryDialog.requesterBio.department}
-                    </p>
-                  )}
+          {/* Unified scrollable container for smooth mobile touch scrolling */}
+          <div
+            className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5 overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {/* Requester Bio Section */}
+            {!requesterHistoryDialog.loading && requesterHistoryDialog.requesterBio && (
+              <div className="bg-slate-50 p-3 sm:p-4 rounded-xl flex items-start gap-3 border border-slate-200/80">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-[#0B2545]/10 flex items-center justify-center text-[#0B2545] font-bold text-base sm:text-lg shrink-0">
+                  {requesterHistoryDialog.requesterBio.name.charAt(0)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-slate-900 text-sm sm:text-base truncate">{requesterHistoryDialog.requesterBio.name}</h4>
+                  <div className="text-xs text-slate-500 space-y-0.5 mt-0.5">
+                    <p className="font-mono">الرقم الوظيفي: {requesterHistoryDialog.requesterBio.university_id}</p>
+                    {requesterHistoryDialog.requesterBio.phone && (
+                      <p>رقم الجوال: <a href={`https://wa.me/${requesterHistoryDialog.requesterBio.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-[#0B2545] hover:underline font-mono inline-flex items-center gap-1" dir="ltr">{requesterHistoryDialog.requesterBio.phone}</a></p>
+                    )}
+                    {requesterHistoryDialog.requesterBio.email && (
+                      <p className="truncate">البريد الإلكتروني: <a href={`mailto:${requesterHistoryDialog.requesterBio.email}`} className="text-[#0B2545] hover:underline font-mono inline-flex items-center gap-1" dir="ltr">{requesterHistoryDialog.requesterBio.email}</a></p>
+                    )}
+                    {(requesterHistoryDialog.requesterBio.college || requesterHistoryDialog.requesterBio.department) && (
+                      <p className="flex items-center gap-1 truncate text-slate-600 font-medium">
+                        {requesterHistoryDialog.requesterBio.college}
+                        {requesterHistoryDialog.requesterBio.college && requesterHistoryDialog.requesterBio.department ? " - " : ""}
+                        {requesterHistoryDialog.requesterBio.department}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Date \u0026 Text Filter Section */}
-          {!requesterHistoryDialog.loading && (
-            <div className="flex flex-wrap items-center gap-2 mb-4 bg-orange-50/50 p-2 rounded-lg border border-orange-100">
-              {/* Text Search */}
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute right-2.5 top-2 h-4 w-4 text-orange-400" />
-                <Input 
-                  id="history-search" 
-                  placeholder="بحث عن طلب، رقم، ملاحظة..."
-                  className="h-8 bg-white border-orange-200 focus-visible:ring-orange-500 pr-8 text-xs"
-                  value={requesterHistoryDialog.textSearch} 
-                  onChange={(e) => setRequesterHistoryDialog(prev => ({ ...prev, textSearch: e.target.value }))} 
-                />
-              </div>
-
-              {/* Date Filters */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-orange-800">من:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="h-8 w-[135px] text-xs px-2 py-1 bg-white border-orange-200 focus:ring-orange-500 rounded-md justify-start text-right font-normal text-muted-foreground"
-                      >
-                        <CalendarIcon className="ml-1 h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
-                        {requesterHistoryDialog.startDate ? (
-                          format(new Date(requesterHistoryDialog.startDate), "PPP", { locale: arSA })
-                        ) : (
-                          <span>البداية...</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={requesterHistoryDialog.startDate ? new Date(requesterHistoryDialog.startDate) : undefined}
-                        onSelect={(date) => setRequesterHistoryDialog(prev => ({ ...prev, startDate: date ? format(date, "yyyy-MM-dd") : null }))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-orange-800">إلى:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="h-8 w-[135px] text-xs px-2 py-1 bg-white border-orange-200 focus:ring-orange-500 rounded-md justify-start text-right font-normal text-muted-foreground"
-                      >
-                        <CalendarIcon className="ml-1 h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
-                        {requesterHistoryDialog.endDate ? (
-                          format(new Date(requesterHistoryDialog.endDate), "PPP", { locale: arSA })
-                        ) : (
-                          <span>النهاية...</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={requesterHistoryDialog.endDate ? new Date(requesterHistoryDialog.endDate) : undefined}
-                        onSelect={(date) => setRequesterHistoryDialog(prev => ({ ...prev, endDate: date ? format(date, "yyyy-MM-dd") : null }))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+            {/* Date & Text Filter Section */}
+            {!requesterHistoryDialog.loading && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-orange-50/60 p-2.5 rounded-xl border border-orange-100">
+                {/* Text Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-orange-400" />
+                  <Input 
+                    id="history-search" 
+                    placeholder="بحث عن طلب، رقم، ملاحظة..."
+                    className="h-8 bg-white border-orange-200 focus-visible:ring-orange-500 pr-8 text-xs rounded-lg"
+                    value={requesterHistoryDialog.textSearch} 
+                    onChange={(e) => setRequesterHistoryDialog(prev => ({ ...prev, textSearch: e.target.value }))} 
+                  />
                 </div>
 
-                {(requesterHistoryDialog.startDate || requesterHistoryDialog.endDate || requesterHistoryDialog.textSearch) && (
-                  <Button 
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setRequesterHistoryDialog(prev => ({ ...prev, startDate: null, endDate: null, textSearch: "" }))}
-                    className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-100"
-                    title="مسح الفلاتر"
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+                {/* Date Filters */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-1 sm:flex-none">
+                    <span className="text-[11px] font-semibold text-orange-800 shrink-0">من:</span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-8 flex-1 sm:w-[120px] text-[11px] px-2 py-1 bg-white border-orange-200 focus:ring-orange-500 rounded-lg justify-start text-right font-normal text-muted-foreground"
+                        >
+                          <CalendarIcon className="ml-1 h-3 w-3 text-orange-500 shrink-0" />
+                          {requesterHistoryDialog.startDate ? (
+                            format(new Date(requesterHistoryDialog.startDate), "yyyy/MM/dd")
+                          ) : (
+                            <span>البداية...</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={requesterHistoryDialog.startDate ? new Date(requesterHistoryDialog.startDate) : undefined}
+                          onSelect={(date) => setRequesterHistoryDialog(prev => ({ ...prev, startDate: date ? format(date, "yyyy-MM-dd") : null }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-          {/* Terms Filters */}
-          {!requesterHistoryDialog.loading && terms && terms.length > 0 && (
-            <div className="mb-4 bg-orange-50/50 p-3 rounded-lg border border-orange-100/50">
-              <h4 className="text-xs font-semibold text-orange-800 mb-2">تصفية حسب الفترة التشغيلية:</h4>
-              <div className="flex flex-wrap gap-2">
-                {terms.map(term => {
-                  const isSelected = requesterHistoryDialog.selectedTerms.includes(term.term_id)
-                  return (
-                    <button
-                      key={term.term_id}
-                      onClick={() => {
-                        setRequesterHistoryDialog(prev => {
-                          const newTerms = isSelected
-                            ? prev.selectedTerms.filter(id => id !== term.term_id)
-                            : [...prev.selectedTerms, term.term_id]
-                          return { ...prev, selectedTerms: newTerms }
-                        })
-                      }}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-orange-500/50 ${
-                        isSelected 
-                          ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm font-semibold' 
-                          : 'bg-white text-slate-600 border-orange-200 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700'
-                      }`}
+                  <div className="flex items-center gap-1 flex-1 sm:flex-none">
+                    <span className="text-[11px] font-semibold text-orange-800 shrink-0">إلى:</span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-8 flex-1 sm:w-[120px] text-[11px] px-2 py-1 bg-white border-orange-200 focus:ring-orange-500 rounded-lg justify-start text-right font-normal text-muted-foreground"
+                        >
+                          <CalendarIcon className="ml-1 h-3 w-3 text-orange-500 shrink-0" />
+                          {requesterHistoryDialog.endDate ? (
+                            format(new Date(requesterHistoryDialog.endDate), "yyyy/MM/dd")
+                          ) : (
+                            <span>النهاية...</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={requesterHistoryDialog.endDate ? new Date(requesterHistoryDialog.endDate) : undefined}
+                          onSelect={(date) => setRequesterHistoryDialog(prev => ({ ...prev, endDate: date ? format(date, "yyyy-MM-dd") : null }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {(requesterHistoryDialog.startDate || requesterHistoryDialog.endDate || requesterHistoryDialog.textSearch) && (
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setRequesterHistoryDialog(prev => ({ ...prev, startDate: null, endDate: null, textSearch: "" }))}
+                      className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-lg shrink-0"
+                      title="مسح الفلاتر"
                     >
-                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      {term.name}
-                    </button>
-                  )
-                })}
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {/* Terms Filters */}
+            {!requesterHistoryDialog.loading && terms && terms.length > 0 && (
+              <div className="bg-orange-50/40 p-2.5 rounded-xl border border-orange-100/60">
+                <h4 className="text-[11px] font-semibold text-orange-800 mb-1.5">تصفية حسب الفترة التشغيلية:</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {terms.map(term => {
+                    const isSelected = requesterHistoryDialog.selectedTerms.includes(term.term_id)
+                    return (
+                      <button
+                        key={term.term_id}
+                        type="button"
+                        onClick={() => {
+                          setRequesterHistoryDialog(prev => {
+                            const newTerms = isSelected
+                              ? prev.selectedTerms.filter(id => id !== term.term_id)
+                              : [...prev.selectedTerms, term.term_id]
+                            return { ...prev, selectedTerms: newTerms }
+                          })
+                        }}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 focus:outline-none ${
+                          isSelected 
+                            ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-xs font-semibold' 
+                            : 'bg-white text-slate-600 border-orange-200 hover:border-orange-400 hover:bg-orange-50'
+                        }`}
+                      >
+                        {isSelected && <CheckCircle2 className="w-3 h-3 text-orange-600" />}
+                        {term.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Request List Section - Direct child of unified scroll container */}
+            <div className="space-y-3 pt-1">
             {requesterHistoryDialog.loading ? (
               <ListSkeleton />
             ) : requesterHistoryDialog.data.length > 0 ? (
@@ -1850,6 +1858,7 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                 <p>لا يوجد سجل تعاملات سابق لك مع هذا المستخدم</p>
               </div>
             )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1865,23 +1874,27 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
 
       {/* History Item Detail Dialog */}
       <Dialog open={!!selectedHistoryItem} onOpenChange={(open) => !open && setSelectedHistoryItem(null)}>
-        <DialogContent className="sm:max-w-2xl w-[95vw] md:w-full z-[100] max-h-[90vh] overflow-y-auto" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>تفاصيل الطلب (من السجل)</DialogTitle>
+        <DialogContent
+          className="sm:max-w-2xl w-[95vw] md:w-full z-[100] max-h-[92dvh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border-slate-200 shadow-2xl"
+          dir="rtl"
+        >
+          <DialogHeader className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/90 shrink-0 text-right pr-4 pl-12">
+            <DialogTitle className="text-base sm:text-lg font-bold text-slate-800">تفاصيل الطلب (من السجل)</DialogTitle>
           </DialogHeader>
-          <div className="p-1">
+          <div
+            className="flex-1 overflow-y-auto p-3.5 sm:p-5 overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             {historyLoading ? (
               <div className="p-4 space-y-4">
                 <div className="h-4 bg-muted animate-pulse rounded w-1/4"></div>
                 <div className="h-32 bg-muted animate-pulse rounded"></div>
               </div>
             ) : selectedHistoryItem && selectedHistoryItem !== true ? (
-              <div className="mt-4">
-                <RequestDetail
-                  request={selectedHistoryItem}
-                  showHistory={true}
-                />
-              </div>
+              <RequestDetail
+                request={selectedHistoryItem}
+                showHistory={true}
+              />
             ) : null}
           </div>
         </DialogContent>

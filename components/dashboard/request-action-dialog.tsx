@@ -121,18 +121,21 @@ export function RequestActionDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[580px] max-h-[90vh] overflow-y-auto" dir="rtl">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <DialogContent className="sm:max-w-[580px] w-[95vw] max-h-[92dvh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl border-slate-200 shadow-2xl" dir="rtl">
+                <DialogHeader className="p-4 sm:p-5 border-b border-border bg-slate-50/90 shrink-0 text-right pr-4 pl-12">
+                    <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
                         {type === 'reject_with_changes' && <ArrowRightLeft className="w-5 h-5 text-orange-600" />}
                         {getTitle()}
                     </DialogTitle>
-                    <DialogDescription className="text-sm text-muted-foreground mt-1">
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1">
                         {getDescription()}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-5 py-3">
+                <div
+                    className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain touch-pan-y"
+                    style={{ WebkitOverflowScrolling: 'touch' }}
+                >
                     {/* Destination Selection (Only for reject_with_changes) */}
                     {type === 'reject_with_changes' && (
                         <div className="space-y-3 bg-muted/40 border border-border p-4 rounded-xl">
@@ -256,7 +259,7 @@ export function RequestActionDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border">
+                <DialogFooter className="p-3 sm:p-4 border-t border-border bg-slate-50/90 shrink-0 flex items-center justify-end gap-2">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

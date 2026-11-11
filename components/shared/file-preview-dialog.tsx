@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export function FilePreviewDialog({ open, onOpenChange, file }: FilePreviewDialo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col p-0 gap-0">
+            <DialogContent className="max-w-4xl w-[95vw] sm:w-full max-h-[92dvh] h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="px-6 py-4 border-b bg-background z-10">
                     <div className="flex items-center justify-between">
                         <DialogTitle className="flex items-center gap-2">

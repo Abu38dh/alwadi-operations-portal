@@ -238,7 +238,7 @@ export function WorkflowSelectionDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={`${mode === 'new' ? 'max-w-7xl' : 'sm:max-w-2xl'} transition-[max-width] duration-500 ease-in-out max-h-[90vh] overflow-y-auto`} dir="rtl">
+            <DialogContent className={`${mode === 'new' ? 'max-w-7xl' : 'sm:max-w-2xl'} transition-[max-width] duration-500 ease-in-out max-h-[92dvh] overflow-y-auto overscroll-contain touch-pan-y`} style={{ WebkitOverflowScrolling: 'touch' }} dir="rtl">
                 {/* Header - Fixed */}
                 <DialogHeader className="p-6 border-b bg-white flex-shrink-0 z-10">
                     <DialogTitle className="text-2xl font-bold">تعيين مسار عمل للنموذج</DialogTitle>
