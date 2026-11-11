@@ -199,7 +199,11 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
           setStats(statsRes.data)
         }
         if (formsRes.success && formsRes.data) {
-          setAvailableForms(formsRes.data)
+          setAvailableForms(formsRes.data.map((form: any) => ({
+            id: form.form_id.toString(),
+            label: form.name || "نموذج",
+            icon: "📝"
+          })))
         }
         if (historyRes.success && historyRes.history) {
           setHistoryRequests(historyRes.history)
@@ -1190,29 +1194,33 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                    {availableForms.filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase())).length > 0 ? (
+                    {availableForms.filter(f => (f?.label || f?.name || "").toLowerCase().includes((formSearchQuery || "").toLowerCase())).length > 0 ? (
                       availableForms
-                        .filter(f => (f?.label || "").toLowerCase().includes((formSearchQuery || "").toLowerCase()))
-                        .map((form) => (
-                          <div
-                            key={form.id}
-                            onClick={() => setSelectedRequestType(form.id)}
-                            className="group bg-white hover:bg-slate-50 border border-slate-200 hover:border-primary/40 rounded-xl p-2.5 sm:p-3.5 cursor-pointer transition-all duration-150 shadow-xs flex items-center justify-between gap-2.5 active:scale-[0.99]"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                <FileText className="w-4 h-4" />
+                        .filter(f => (f?.label || f?.name || "").toLowerCase().includes((formSearchQuery || "").toLowerCase()))
+                        .map((form) => {
+                          const formId = (form.id || form.form_id)?.toString()
+                          const formLabel = form.label || form.name || "نموذج"
+                          return (
+                            <div
+                              key={formId}
+                              onClick={() => formId && setSelectedRequestType(formId)}
+                              className="group bg-white hover:bg-slate-50 border border-slate-200 hover:border-primary/40 rounded-xl p-2.5 sm:p-3.5 cursor-pointer transition-all duration-150 shadow-xs flex items-center justify-between gap-2.5 active:scale-[0.99]"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                  <FileText className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-bold text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                                  {formLabel}
+                                </h3>
                               </div>
-                              <h3 className="font-bold text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors truncate">
-                                {form.label}
-                              </h3>
+                              <div className="flex items-center gap-1 text-[11px] font-semibold text-primary/80 shrink-0">
+                                <span className="hidden sm:inline">تقديم</span>
+                                <ChevronRight className="w-4 h-4 rtl:rotate-180 text-muted-foreground group-hover:text-primary" />
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-primary/80 shrink-0">
-                              <span className="hidden sm:inline">تقديم</span>
-                              <ChevronRight className="w-4 h-4 rtl:rotate-180 text-muted-foreground group-hover:text-primary" />
-                            </div>
-                          </div>
-                        ))
+                          )
+                        })
                     ) : (
                       <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed border-border/70 rounded-xl bg-slate-50/50">
                         <Search className="w-8 h-8 mx-auto mb-2 opacity-25" />
