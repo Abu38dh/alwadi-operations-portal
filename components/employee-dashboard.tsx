@@ -1264,8 +1264,8 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
             <AdminUsersPage
               onBack={() => setCurrentView("requests")}
               currentUserId={userData.university_id}
-              canManageUsers={hasPermission('manage_users') || permissions.includes('all')}
-              canDelegate={hasPermission('grant_delegations') || hasPermission('manage_users') || permissions.includes('all')}
+              canManageUsers={hasPermission('manage_users')}
+              canDelegate={hasPermission('grant_delegations') || hasPermission('manage_users')}
             />
           )}
 

@@ -194,7 +194,7 @@ export async function getUsers(
                 const isFullAccess = storedPerms.length === 0 || storedPerms.includes('all') || storedPerms.length < 5
                 permissions = isFullAccess ? ALL_ADMIN_PERMS : storedPerms
             } else {
-                permissions = storedPerms
+                permissions = storedPerms.filter((p: string) => p !== 'all')
             }
             return { ...user, permissions }
         })
@@ -305,7 +305,19 @@ export async function updateUser(userId: number, data: any, requesterId?: string
         if (data.is_active !== undefined) updateData.is_active = data.is_active
         if (data.permissions !== undefined) {
             console.log("Saving permissions:", data.permissions)
-            updateData.custom_permissions = JSON.stringify(data.permissions)
+            const targetUser = await db.users.findUnique({
+                where: { user_id: userId },
+                include: { roles: true }
+            })
+            const effectiveRoleId = data.role_id ? parseInt(data.role_id) : targetUser?.role_id
+            const roleRecord = effectiveRoleId ? await db.roles.findUnique({ where: { role_id: effectiveRoleId } }) : targetUser?.roles
+            const isTargetAdmin = roleRecord?.role_name?.toLowerCase() === 'admin'
+
+            const sanitizedPerms = isTargetAdmin
+                ? (Array.isArray(data.permissions) ? data.permissions : [])
+                : (Array.isArray(data.permissions) ? data.permissions.filter((p: string) => p !== 'all') : [])
+
+            updateData.custom_permissions = JSON.stringify(sanitizedPerms)
         }
         if (data.password) {
             const hash = await bcrypt.hash(data.password, 10)

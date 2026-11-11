@@ -64,6 +64,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                                 permissions = user.roles.permissions as string[]
                             }
 
+                            if (user.roles.role_name?.toLowerCase() !== 'admin') {
+                                permissions = permissions.filter((p: string) => p !== 'all')
+                            }
+
                             return {
                                 id: user.user_id.toString(),
                                 name: user.full_name,

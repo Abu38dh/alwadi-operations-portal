@@ -58,6 +58,10 @@ export async function loginUser(username: string, password: string): Promise<Log
       permissions = user.roles.permissions as string[]
     }
 
+    if (user.roles?.role_name?.toLowerCase() !== 'admin') {
+      permissions = permissions.filter((p: string) => p !== 'all')
+    }
+
     return {
       success: true,
       user: {

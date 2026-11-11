@@ -375,6 +375,11 @@ export default function AdminUsersPage({
     }
 
     try {
+      const isExpandedAdmin = selectedRole?.role_name?.toLowerCase() === 'admin';
+      const cleanPerms = isExpandedAdmin
+        ? (expandedUserData.permissions || [])
+        : (expandedUserData.permissions || []).filter((p: string) => p !== 'all');
+
       const result = await updateUser(expandedUserId, {
         full_name: expandedUserData.full_name,
         email: expandedUserData.email,
@@ -383,7 +388,7 @@ export default function AdminUsersPage({
         department_id: expandedUserData.department_id,
         level_id: expandedUserData.level_id ?? null,
         is_active: expandedUserData.is_active,
-        permissions: expandedUserData.permissions || [],
+        permissions: cleanPerms,
         password: expandedUserData.password
       }, currentUserId)
 
@@ -736,12 +741,12 @@ export default function AdminUsersPage({
                         setExpandedUserId(user.user_id)
                         const allAdminPerms = ['review_requests', 'manage_forms', 'manage_users', 'manage_departments', 'view_reports', 'manage_workflows', 'grant_delegations', 'audit_access', 'can_manage_absences', 'manage_terms', 'manage_levels']
                         const isAdmin = roles.find((r: any) => r.role_id === user.role_id)?.role_name?.toLowerCase() === 'admin'
-                        const storedPerms = user.permissions || []
-                        // Default to all if empty/corrupted (< 5). If intentionally restricted (≥ 5), use stored.
-                        const isFullAccess = !isAdmin || storedPerms.length === 0 || storedPerms.includes('all') || storedPerms.length < 5
+                        const storedPerms = (user.permissions || []).filter((p: string) => p !== 'all')
+                        // Default to all if empty/corrupted (< 5) for admin role.
+                        const isFullAccess = isAdmin && (storedPerms.length === 0 || storedPerms.length < 5)
                         const initializedUser = isAdmin
                           ? { ...user, permissions: isFullAccess ? allAdminPerms : storedPerms }
-                          : user
+                          : { ...user, permissions: storedPerms }
                         setExpandedUserData(initializedUser)
 
                       }

@@ -30,9 +30,10 @@ export default async function Home() {
           const isFullAccess = storedPerms.length === 0 || storedPerms.includes('all') || storedPerms.length < 5
           user.permissions = isFullAccess ? ALL_ADMIN_PERMS : storedPerms
         } else {
-          user.permissions = freshUser.custom_permissions 
+          const rawPerms = freshUser.custom_permissions 
             ? JSON.parse(freshUser.custom_permissions) 
             : (freshUser.roles?.permissions as string[] || [])
+          user.permissions = Array.isArray(rawPerms) ? rawPerms.filter((p: string) => p !== 'all') : []
         }
       }
     } catch (e) {
