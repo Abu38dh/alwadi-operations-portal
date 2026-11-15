@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import NextImage from "next/image" // Aliased to avoid conflict with window.Image
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
