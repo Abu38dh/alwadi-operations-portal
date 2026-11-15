@@ -7,7 +7,12 @@ import * as bcrypt from "bcryptjs"
 
 export async function getAdminStats() {
     const [totalUsers, totalRequests, activeRequests, totalForms, completedRequests] = await Promise.all([
-        db.users.count(),
+        db.users.count({
+            where: {
+                university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                roles: { role_name: { notIn: ['admin', 'Admin', 'ADMIN'] } }
+            }
+        }),
         db.requests.count(),
         db.requests.count({ where: { status: 'pending' } }),
         db.form_templates.count({ where: { is_active: true } }),
@@ -147,6 +152,11 @@ export async function getUsers(
         const whereClause: any = {
             AND: [
                 baseWhere,
+                // Exclude system admin from employee listings and delegations
+                {
+                    university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                    roles: { role_name: { notIn: ['admin', 'Admin', 'ADMIN'] } }
+                },
                 search ? {
                     OR: [
                         { full_name: { contains: search } },
@@ -628,7 +638,8 @@ export async function getApproversList(requesterId?: string) {
     try {
         let userWhereClause: any = { 
             is_active: true,
-            roles: { role_name: { not: 'student' } }
+            university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+            roles: { role_name: { notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN'] } }
         }
 
         if (requesterId) {
@@ -662,26 +673,30 @@ export async function getApproversList(requesterId?: string) {
                 if (roleName === 'admin' || roleName === 'dean' || hasAdminOrDelegationPerm) {
                     userWhereClause = {
                         is_active: true,
-                        roles: { role_name: { not: 'student' } }
+                        university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                        roles: { role_name: { notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN'] } }
                     }
                 } else if (roleName === 'head_of_department' || roleName === 'manager' || roleName === 'head') {
                     const deptId = requester.department_id
                     if (deptId) {
                         userWhereClause = {
                             is_active: true,
-                            roles: { role_name: { not: 'student' } },
+                            university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                            roles: { role_name: { notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN'] } },
                             department_id: deptId
                         }
                     } else {
                         userWhereClause = {
                             is_active: true,
-                            roles: { role_name: { not: 'student' } }
+                            university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                            roles: { role_name: { notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN'] } }
                         }
                     }
                 } else {
                     userWhereClause = {
                         is_active: true,
-                        roles: { role_name: { not: 'student' } }
+                        university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                        roles: { role_name: { notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN'] } }
                     }
                 }
             }

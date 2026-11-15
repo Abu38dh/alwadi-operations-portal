@@ -387,9 +387,10 @@ export async function getEligibleManagers() {
         const users = await db.users.findMany({
             where: {
                 is_active: true,
+                university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
                 roles: {
                     role_name: {
-                        in: ['employee', 'admin']
+                        notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN']
                     }
                 }
             },

@@ -160,10 +160,20 @@ export default function AdminUsersPage({
       }
 
       if (usersResult.success && usersResult.data) {
+        const cleanUsers = (usersResult.data || []).filter((u: any) =>
+          u?.university_id?.toLowerCase() !== 'admin' &&
+          u?.roles?.role_name?.toLowerCase() !== 'admin'
+        )
         if (page === 1) {
-          setUsers(usersResult.data)
+          setUsers(cleanUsers)
         } else {
-          setUsers(prev => [...prev, ...usersResult.data])
+          setUsers(prev => [
+            ...prev.filter((u: any) =>
+              u?.university_id?.toLowerCase() !== 'admin' &&
+              u?.roles?.role_name?.toLowerCase() !== 'admin'
+            ),
+            ...cleanUsers
+          ])
         }
 
         if (usersResult.pagination) {
@@ -195,7 +205,10 @@ export default function AdminUsersPage({
 
   // ── Client-side filtering (instant, no loading) ──────────────────────
   const filteredUsers = useMemo(() => {
-    let result = users
+    let result = (users || []).filter((u: any) =>
+      u?.university_id?.toLowerCase() !== 'admin' &&
+      u?.roles?.role_name?.toLowerCase() !== 'admin'
+    )
 
     // Filter by department
     if (selectedDeptId && selectedDeptId !== "__all__") {

@@ -278,7 +278,8 @@ export async function getAllEmployeesKPIs(termId?: number) {
         const employees = await db.users.findMany({
             where: {
                 is_active: true,
-                roles: { role_name: { not: "student" } }
+                university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+                roles: { role_name: { notIn: ["student", "Student", "admin", "Admin", "ADMIN"] } }
             },
             include: { roles: true }
         })

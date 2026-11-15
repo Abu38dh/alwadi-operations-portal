@@ -1283,10 +1283,11 @@ export async function getDepartmentColleagues(userId: string) {
         let whereClause: any = {
             user_id: { not: user.user_id },
             is_active: true,
-            // Exclude students from colleagues list
+            university_id: { notIn: ['admin', 'Admin', 'ADMIN'] },
+            // Exclude students and system admin from colleagues list
             roles: {
                 role_name: {
-                    notIn: ['student', 'Student']
+                    notIn: ['student', 'Student', 'admin', 'Admin', 'ADMIN']
                 }
             }
         }

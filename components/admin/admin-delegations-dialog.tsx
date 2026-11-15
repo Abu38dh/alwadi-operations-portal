@@ -90,8 +90,12 @@ export function AdminDelegationsDialog({ user, currentUserId, isOpen, onClose }:
         }))
       }
       if (usersRes.success && usersRes.data) {
-        // Filter out current user
-        setColleagues(usersRes.data.users.filter((u: any) => u.user_id !== user.user_id))
+        // Filter out current user and system admin
+        setColleagues(usersRes.data.users.filter((u: any) => 
+          u.user_id !== user.user_id &&
+          u.university_id?.toLowerCase() !== 'admin' &&
+          u.roles?.role_name?.toLowerCase() !== 'admin'
+        ))
       }
     } catch (e) {
       console.error(e)
