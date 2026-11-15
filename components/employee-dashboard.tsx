@@ -250,6 +250,23 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
     }
   }, [])
 
+  // Auto-select first request in inbox view on desktop
+  useEffect(() => {
+    if (currentView === 'inbox' && inboxRequests.length > 0) {
+      if (!selectedRequest || !inboxRequests.find(r => r.id === selectedRequest.id)) {
+        if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+          setSelectedRequest(inboxRequests[0])
+        }
+      }
+    }
+  }, [currentView, inboxRequests, selectedRequest])
+
+  // Sync inbox pending stats with actual inbox requests count
+  const inboxStats = useMemo(() => ({
+    ...stats,
+    pending: inboxRequests.length > 0 ? inboxRequests.length : stats.pending
+  }), [stats, inboxRequests.length])
+
   useEffect(() => {
     if (selectedRequest) {
       const fetchHistory = async () => {
@@ -533,12 +550,13 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
       <div className="flex flex-1 min-w-0">
 
         {/* Desktop Sidebar */}
-        <div className="hidden md:block h-full shrink-0">
+        <div className="hidden md:block shrink-0 sticky top-14 md:top-16 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)]">
           <Sidebar
             currentView={currentView}
             onViewChange={(view) => setCurrentView(view as any)}
             userRole="employee"
             permissions={permissions}
+            className="h-full"
           />
         </div>
 
@@ -662,12 +680,12 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                 <>
                   {/* Stats Cards */}
                   <div className={`p-2 sm:p-4 border-b bg-muted/20 ${selectedRequest ? 'hidden md:block' : 'block'}`}>
-                    <RequestStats stats={stats} onStatClick={handleStatClick} />
+                    <RequestStats stats={inboxStats} onStatClick={handleStatClick} />
                   </div>
 
                   {/* Inbox Content */}
                   {inboxRequests.length === 0 ? (
-                    <div className="p-2 sm:p-4">
+                    <div className="p-4 sm:p-6">
                       <EmptyState
                         icon=""
                         title="لا توجد طلبات قيد الانتظار"
@@ -676,18 +694,18 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                     </div>
                   ) : (
                     <div className="p-2 sm:p-4">
-                      <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[500px]">
+                      <div className="flex flex-col md:flex-row gap-4 items-stretch h-[calc(100vh-220px)] min-h-[520px]">
                         {/* Requests List */}
                         <InboxRequestList
                           requests={inboxRequests}
                           selectedRequestId={selectedRequest?.id}
                           onSelectRequest={setSelectedRequest}
                           onViewHistory={handleViewRequesterHistory}
-                          className={selectedRequest ? "hidden md:block" : "block"}
+                          className={selectedRequest ? "hidden md:block h-full" : "block h-full"}
                         />
 
                         {/* Request Detail */}
-                        <div className={`w-full md:w-2/3 flex flex-col p-2 sm:p-4 bg-slate-50/50 rounded-xl border border-border/50 ${selectedRequest ? 'block' : 'hidden md:flex'}`}>
+                        <div className={`w-full md:w-2/3 flex flex-col p-3 sm:p-4 bg-slate-50/50 rounded-xl border border-slate-200 overflow-y-auto custom-scrollbar ${selectedRequest ? 'block h-full' : 'hidden md:flex h-full'}`}>
                           {selectedRequest ? (
                             <div className="space-y-3 sm:space-y-4">
                               {/* Mobile Back Button Bar */}
@@ -1128,8 +1146,12 @@ export default function EmployeeDashboard({ onLogout, permissions = [], userData
                             )}
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-full text-muted-foreground p-12">
-                            اختر طلباً من القائمة لعرض تفاصيله
+                          <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center my-auto select-none">
+                            <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-3 shadow-2xs">
+                              <Inbox className="w-8 h-8 text-[#0B2545]/40" />
+                            </div>
+                            <p className="font-bold text-base text-slate-700">اختر طلباً من القائمة لعرض تفاصيله</p>
+                            <p className="text-xs text-slate-400 mt-1 max-w-xs">يمكنك استعراض بيانات الطلب، المرفقات، وسجل الاعتمادات واتخاذ الإجراء مباشرة</p>
                           </div>
                         )}
                       </div>

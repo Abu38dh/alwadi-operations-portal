@@ -187,8 +187,8 @@ export default function AdminDashboard({ onLogout, userData, permissions = [] }:
 
       <div className="flex flex-1 min-w-0">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block h-full shrink-0">
-          <Sidebar currentView={currentView} onViewChange={setCurrentView} userRole="admin" permissions={permissions} />
+        <div className="hidden md:block shrink-0 sticky top-14 md:top-16 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)]">
+          <Sidebar currentView={currentView} onViewChange={setCurrentView} userRole="admin" permissions={permissions} className="h-full" />
         </div>
 
         {/* Mobile Sidebar Sheet */}

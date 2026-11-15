@@ -236,8 +236,8 @@ export default function StudentDashboard({ onLogout, userData }: StudentDashboar
 
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block h-full">
-          <Sidebar currentView={currentView} onViewChange={(view) => setCurrentView(view as any)} userRole="student" userStatus={userData.user_status} />
+        <div className="hidden md:block shrink-0 sticky top-14 md:top-16 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)]">
+          <Sidebar currentView={currentView} onViewChange={(view) => setCurrentView(view as any)} userRole="student" userStatus={userData.user_status} className="h-full" />
         </div>
 
         {/* Mobile Sidebar Sheet */}

@@ -120,7 +120,7 @@ export default function Sidebar({
     <aside
       dir="rtl"
       className={`
-        w-64 h-screen flex flex-col
+        w-64 h-full flex flex-col
         bg-white border-l border-slate-200
         overflow-hidden
         ${className ?? ""}
